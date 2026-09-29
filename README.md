@@ -105,5 +105,6 @@ O uso é permitido como apoio, desde que declarado em [`DECLARACAO-DE-USO-DE-IA.
 
 | Nome | Matrícula | GitHub |
 |---|---|---|
-| | | |
-| | | |
+|Ana Lívia Patricio Santos|20250114384|anasantos029|
+|Anny Beatriz Lima Gaião|20250114366|annygaiao|
+|Bianca Vitória de Almeida Félix|20250114007|biancavitoriaf|
