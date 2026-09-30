@@ -91,7 +91,9 @@ Sua equipe escolhe um acervo próprio: jogos, filmes, quadrinhos, instrumentos, 
 
 ### Nossa extensão
 
-> Substitua esta seção: qual acervo, qual regra de negócio própria, o que ela muda no comportamento do sistema.
+> **Acervo escolhido: Livros**
+> 
+> **Regra de negócio: Restrição por classificação indicativa - a biblioteca precisa validar a idade do usuário antes de realizar o empréstimo de livros, por meio da classificação etária.**
 
 ---
 

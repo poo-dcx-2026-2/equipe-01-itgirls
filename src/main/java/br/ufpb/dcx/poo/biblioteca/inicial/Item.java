@@ -13,12 +13,17 @@ import java.util.List;
  */
 public class Item {
 
+    //os atributos não são final, podem ser mudados, oq não deve acontecer
+    //colocar como final
+
     private String codigo;
     private String titulo;
     private String autoria;
     private String categoria;
     private int ano;
     private final List<Exemplar> exemplares = new ArrayList<>();
+
+    //fazer exceçoes, tá aceitando qualquer item
 
     public Item(String codigo, String titulo, String autoria, String categoria, int ano) {
         this.codigo = codigo;
@@ -44,4 +49,7 @@ public class Item {
     public void setAno(int ano) { this.ano = ano; }
 
     public List<Exemplar> getExemplares() { return exemplares; }
+
+    //nao pode ter set e deve ter metodos proprios, os que tão lá no diagrama
+    //nada de getExemplares
 }

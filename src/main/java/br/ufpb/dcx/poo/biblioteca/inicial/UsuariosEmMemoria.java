@@ -1,7 +1,9 @@
 package br.ufpb.dcx.poo.biblioteca.inicial;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import br.ufpb.dcx.poo.biblioteca.contrato.UsuarioService;
 import br.ufpb.dcx.poo.biblioteca.contrato.UsuarioView;
@@ -19,40 +21,41 @@ import br.ufpb.dcx.poo.biblioteca.contrato.excecoes.RecursoNaoEncontradoExceptio
  */
 public class UsuariosEmMemoria implements UsuarioService {
 
-    private final List<String> matriculas = new ArrayList<>();
-    private final List<String> nomes = new ArrayList<>();
+    //dar uma olhadinha melhor nessa parte
+
+    private final Map<String, Usuario> usuarios = new HashMap<>();
 
     @Override
-    public void cadastrarUsuario(String matricula, String nome)
-            throws RecursoDuplicadoException {
+    public void cadastrarUsuario(String matricula, String nome) throws RecursoDuplicadoException {
 
-        if (matricula == null || matricula.isBlank()) {
-            throw new DadosInvalidosException("A matrícula é obrigatória.");
-        }
-        if (nome == null || nome.isBlank()) {
-            throw new DadosInvalidosException("O nome é obrigatório.");
-        }
-        if (matriculas.contains(matricula)) {
+        if (usuarios.containsKey(matricula)) {
             throw new RecursoDuplicadoException("Já existe usuário com a matrícula " + matricula);
         }
-        matriculas.add(matricula);
-        nomes.add(nome);
+
+        Usuario usuario = new Usuario(matricula, nome);
+        usuarios.put(matricula, usuario);
     }
 
     @Override
     public UsuarioView buscarUsuario(String matricula) throws RecursoNaoEncontradoException {
-        int posicao = matriculas.indexOf(matricula);
-        if (posicao < 0) {
+        //buscar pela chave, inves de peo
+        Usuario usuario = usuarios.get(matricula);
+        if (usuario == null) {
             throw new RecursoNaoEncontradoException("Usuário não encontrado: " + matricula);
         }
-        return new UsuarioView(matriculas.get(posicao), nomes.get(posicao), true, 0);
+        return paraView(usuario);
+    }
+
+    private UsuarioView paraView(Usuario usuario) {
+        return new UsuarioView(usuario.getMatricula(), usuario.getNome(), true, 0);
     }
 
     @Override
     public List<UsuarioView> listarUsuarios() {
         List<UsuarioView> resultado = new ArrayList<>();
-        for (int i = 0; i < matriculas.size(); i++) {
-            resultado.add(new UsuarioView(matriculas.get(i), nomes.get(i), true, 0));
+        // Percorre os valores armazenados no Map
+        for (Usuario u : usuarios.values()) {
+            resultado.add(paraView(u));
         }
         resultado.sort((a, b) -> a.nome().compareToIgnoreCase(b.nome()));
         return resultado;

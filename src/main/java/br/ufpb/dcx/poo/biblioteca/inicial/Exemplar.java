@@ -9,9 +9,14 @@ import br.ufpb.dcx.poo.biblioteca.contrato.StatusExemplar;
  */
 public class Exemplar {
 
+    //tombo não é final, precisa ser
+
     private String tombo;
     private Item item;
     private StatusExemplar status;
+
+    //falta exceçoes
+    //fazer um codigoDoItem, inves de salvar o item todo
 
     public Exemplar(String tombo, Item item) {
         this.tombo = tombo;
@@ -27,4 +32,7 @@ public class Exemplar {
 
     public StatusExemplar getStatus() { return status; }
     public void setStatus(StatusExemplar status) { this.status = status; }
+
+    //set desnecessario de novo
+    //
 }

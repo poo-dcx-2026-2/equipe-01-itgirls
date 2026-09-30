@@ -1,7 +1,9 @@
 package br.ufpb.dcx.poo.biblioteca.inicial;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import br.ufpb.dcx.poo.biblioteca.contrato.AcervoService;
 import br.ufpb.dcx.poo.biblioteca.contrato.ExemplarView;
@@ -25,22 +27,29 @@ import br.ufpb.dcx.poo.biblioteca.contrato.excecoes.RecursoNaoEncontradoExceptio
  * para fora de si. Parte da avaliação é justamente perceber e justificar essas
  * mudanças.</p>
  */
+
+
+//uma bela olhada nessas partes do map
+
 public class AcervoEmMemoria implements AcervoService {
 
-    private final List<Item> itens = new ArrayList<>();
+    // Substitui List<Item> pelo Map (chave = código do item)
+    private final Map<String, Item> itens = new HashMap<>();
+
+    // Novo Map para controle global de tombos (chave = tombo do exemplar)
+    private final Map<String, Exemplar> tombosGlobais = new HashMap<>();
 
     @Override
-    public void cadastrarItem(String codigo, String titulo, String autoria,
-                              String categoria, int ano)
-            throws RecursoDuplicadoException {
+    public void cadastrarItem(String codigo, String titulo, String autoria, String categoria, int ano) throws RecursoDuplicadoException {
 
         exigirTextoPreenchido(codigo, "codigo");
         exigirTextoPreenchido(titulo, "titulo");
 
-        if (localizar(codigo) != null) {
+        if (itens.containsKey(codigo)) {
             throw new RecursoDuplicadoException("Já existe item com o código " + codigo);
         }
-        itens.add(new Item(codigo, titulo, autoria, categoria, ano));
+
+        itens.put(codigo, new Item(codigo, titulo, autoria, categoria, ano));
     }
 
     @Override
@@ -55,7 +64,7 @@ public class AcervoEmMemoria implements AcervoService {
     @Override
     public List<ItemView> listarItens() {
         List<ItemView> resultado = new ArrayList<>();
-        for (Item item : itens) {
+        for (Item item : itens.values()) {
             resultado.add(paraView(item));
         }
         resultado.sort((a, b) -> a.titulo().compareToIgnoreCase(b.titulo()));
@@ -91,17 +100,11 @@ public class AcervoEmMemoria implements AcervoService {
     }
 
     /**
-     * Procura um item pelo código. Devolve {@code null} quando não encontra.
-     *
-     * <p>Este é o método que os outros usam para localizar um item.</p>
+     * O antigo 'localizar' usava for-loop com == (bug).
+     * Agora usa a busca direta do Map em O(1).
      */
     private Item localizar(String codigo) {
-        for (Item item : itens) {
-            if (item.getCodigo() == codigo) {
-                return item;
-            }
-        }
-        return null;
+        return itens.get(codigo);
     }
 
     private ItemView paraView(Item item) {
@@ -129,6 +132,6 @@ public class AcervoEmMemoria implements AcervoService {
 
     /** Acesso interno usado pelos demais serviços da implementação inicial. */
     List<Item> itens() {
-        return itens;
+        return new ArrayList<>(itens.values());
     }
 }

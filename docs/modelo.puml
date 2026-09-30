@@ -14,19 +14,34 @@ hide empty members
 class Item {
   - codigo : String
   - titulo : String
+  - autoria : String
+  - categoria : String
+  - ano : int
+  + adicionarExemplar(exemplar : Exemplar) : void
+  + totalDeExemplares() : int
+  + exemplaresDisponiveis() : int
 }
 
 class Exemplar {
   - tombo : String
+  - codigoDoItem : String
+  - status : StatusExemplar
+}
+
+enum StatusExemplar {
+  DISPONIVEL
+  EMPRESTADO
+  RESERVADO
+  INDISPONIVEL
+}
+
+class Usuario {
+  - matricula : String
+  - nome : String
+  - ativo : boolean
+  - emprestimosAtivos : int
 }
 
 Item "1" *-- "0..*" Exemplar : possui
-
-note bottom of Item
-  Ponto de partida, não modelo pronto.
-  Decidam: quais entidades existem,
-  quem guarda o quê, quais invariantes
-  cada objeto protege.
-end note
-
+Exemplar --> StatusExemplar : possui
 @enduml
