@@ -38,8 +38,6 @@ enum StatusExemplar {
 class Usuario {
   - matricula : String
   - nome : String
-  - ativo : boolean
-  - emprestimosAtivos : int
 }
 
 Item "1" *-- "0..*" Exemplar : possui

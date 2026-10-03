@@ -1,7 +1,9 @@
 package br.ufpb.dcx.poo.biblioteca.inicial;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import br.ufpb.dcx.poo.biblioteca.contrato.AcervoService;
 import br.ufpb.dcx.poo.biblioteca.contrato.ExemplarView;
@@ -12,9 +14,13 @@ import br.ufpb.dcx.poo.biblioteca.contrato.excecoes.OperacaoNaoPermitidaExceptio
 import br.ufpb.dcx.poo.biblioteca.contrato.excecoes.RecursoDuplicadoException;
 import br.ufpb.dcx.poo.biblioteca.contrato.excecoes.RecursoNaoEncontradoException;
 
+
+//dar uma olhada nesse map e nesses metodos
+
 public class AcervoEmMemoria implements AcervoService {
 
-    private final List<Item> itens = new ArrayList<>();
+    private final Map<String, Item> itens = new HashMap<>();
+    private final Map<String, Exemplar> tombosGlobais = new HashMap<>();
 
     @Override
     public void cadastrarItem(String codigo, String titulo, String autoria,
@@ -24,12 +30,14 @@ public class AcervoEmMemoria implements AcervoService {
         exigirTextoPreenchido(codigo, "codigo");
         exigirTextoPreenchido(titulo, "titulo");
 
-        if (localizar(codigo) != null) {
+        if (itens.containsKey(codigo)) {
             throw new RecursoDuplicadoException(
                     "Já existe item com o código " + codigo);
         }
 
-        itens.add(new Item(codigo, titulo, autoria, categoria, ano));
+        Item item = new Item(codigo, titulo, autoria, categoria, ano);
+        itens.put(codigo, item);
+
     }
 
     @Override
@@ -51,14 +59,13 @@ public class AcervoEmMemoria implements AcervoService {
 
         List<ItemView> resultado = new ArrayList<>();
 
-        for (Item item : itens) {
+        for (Item item : itens.values()) {
             resultado.add(paraView(item));
         }
 
         resultado.sort(
                 (a, b) ->
-                        a.titulo().compareToIgnoreCase(b.titulo())
-        );
+                        a.titulo().compareToIgnoreCase(b.titulo()));
 
         return resultado;
     }
@@ -74,7 +81,7 @@ public class AcervoEmMemoria implements AcervoService {
 
         String pesquisa = trecho.toLowerCase();
 
-        for (Item item : itens) {
+        for (Item item : itens.values()) {
 
             if (item.getTitulo()
                     .toLowerCase()
@@ -101,7 +108,7 @@ public class AcervoEmMemoria implements AcervoService {
             return resultado;
         }
 
-        for (Item item : itens) {
+        for (Item item : itens.values()) {
 
             if (item.getCategoria() != null
                     && item.getCategoria().equalsIgnoreCase(categoria)) {
@@ -131,20 +138,16 @@ public class AcervoEmMemoria implements AcervoService {
                     "Item não encontrado: " + codigoDoItem);
         }
 
-        for (Item i : itens) {
-
-            for (Exemplar ex : i.getExemplares()) {
-
-                if (ex.getTombo().equals(tombo)) {
-
-                    throw new RecursoDuplicadoException(
-                            "Tombo já existe: " + tombo);
-                }
-            }
+        if (tombosGlobais.containsKey(tombo)) {
+            throw new RecursoDuplicadoException(
+                    "Tombo já cadastrado: " + tombo);
         }
 
-        item.getExemplares()
-                .add(new Exemplar(tombo, item));
+        Exemplar exemplar = new Exemplar(tombo, codigoDoItem);
+
+        item.adicionarExemplar(exemplar);
+
+        tombosGlobais.put(tombo, exemplar);
     }
 
     @Override
@@ -186,7 +189,7 @@ public class AcervoEmMemoria implements AcervoService {
         Exemplar exemplarEncontrado = null;
         Item itemDoExemplar = null;
 
-        for (Item item : itens) {
+        for (Item item : itens.values()) {
 
             for (Exemplar exemplar : item.getExemplares()) {
 
@@ -224,15 +227,7 @@ public class AcervoEmMemoria implements AcervoService {
      */
 
     private Item localizar(String codigo) {
-
-        for (Item item : itens) {
-
-            if (item.getCodigo().equals(codigo)) {
-                return item;
-            }
-        }
-
-        return null;
+        return  itens.get(codigo);
     }
 
     private ItemView paraView(Item item) {
@@ -268,6 +263,6 @@ public class AcervoEmMemoria implements AcervoService {
 
     /** Acesso interno usado pelos demais serviços da implementação inicial. */
     List<Item> itens() {
-        return itens;
+        return new ArrayList<>(itens.values());
     }
 }
