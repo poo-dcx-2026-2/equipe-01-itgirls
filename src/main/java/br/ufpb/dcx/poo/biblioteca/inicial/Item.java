@@ -71,6 +71,12 @@ public class Item {
     exemplares.add(exemplar);
     }
 
+    public void removerExemplar(Exemplar exemplar){
+        if (exemplar != null){
+            this.exemplares.remove(exemplar);
+        }
+    }
+
     public int totalDeExemplares(){
         return exemplares.size();
     }
@@ -88,7 +94,7 @@ public class Item {
     }
 
     public List<Exemplar> getExemplares() {
-        return List.copyOf(exemplares);
+        return new ArrayList<>(exemplares);
     }
 
 

@@ -22,7 +22,7 @@ public class AcervoEmMemoria implements AcervoService {
     @Override
     public void cadastrarItem(String codigo, String titulo, String autoria,
                               String categoria, int ano)
-            throws RecursoDuplicadoException {
+            throws DadosInvalidosException, RecursoDuplicadoException {
 
         exigirTextoPreenchido(codigo, "codigo");
         exigirTextoPreenchido(titulo, "titulo");
@@ -127,7 +127,7 @@ public class AcervoEmMemoria implements AcervoService {
 
         if (tombosGlobais.containsKey(tombo)) {
             throw new RecursoDuplicadoException(
-                    "Tombo já cadastrado: " + tombo);
+                    "Já existe um exemplar cadastrado com tombo: " + tombo);
         }
 
         Exemplar exemplar = new Exemplar(tombo, codigoDoItem);
@@ -141,11 +141,13 @@ public class AcervoEmMemoria implements AcervoService {
     public List<ExemplarView> listarExemplares(String codigoDoItem)
             throws RecursoNaoEncontradoException, DadosInvalidosException {
 
+        exigirTextoPreenchido(codigoDoItem, "código do item");
+
         Item item = localizar(codigoDoItem);
 
         if (item == null) {
             throw new RecursoNaoEncontradoException(
-                    "Item não encontrado: " + codigoDoItem);
+                    "Item não encontrado com o código: " + codigoDoItem);
         }
 
         List<ExemplarView> resultado = new ArrayList<>();
@@ -161,11 +163,7 @@ public class AcervoEmMemoria implements AcervoService {
             );
         }
 
-        resultado.sort(
-                (a, b) ->
-                        a.tombo().compareToIgnoreCase(b.tombo())
-        );
-
+        resultado.sort(Comparator.comparing(ExemplarView::tombo, String.CASE_INSENSITIVE_ORDER));
         return resultado;
     }
 
@@ -191,10 +189,6 @@ public class AcervoEmMemoria implements AcervoService {
         Item itemDoExemplar = localizar(exemplarEncontrado.getCodigoDoItem());
 
 
-        if (itemDoExemplar != null) {
-            itemDoExemplar.getExemplares().remove(exemplarEncontrado);
-
-        }
         tombosGlobais.remove(tombo);
     }
 

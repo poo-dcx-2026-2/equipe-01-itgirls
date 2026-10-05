@@ -20,9 +20,11 @@ public class Exemplar {
     //fazer um codigoDoItem, inves de salvar o item todo
 
     public Exemplar(String tombo, String codigoDoItem) {
-
         if (tombo == null || tombo.isBlank()) {
-            throw new DadosInvalidosException("Tombo inválido.");
+            throw new DadosInvalidosException("Tombo é obrigatório.");
+        }
+        if (codigoDoItem == null || codigoDoItem.isBlank()) {
+            throw new DadosInvalidosException("O código do item é obrigatorio.");
         }
 
         this.tombo = tombo;
@@ -31,11 +33,8 @@ public class Exemplar {
     }
 
     public String getTombo() { return tombo; }
-
     public String getCodigoDoItem() { return codigoDoItem; }
-
     public StatusExemplar getStatus() { return status; }
-
     public void setStatus(StatusExemplar status) {
         this.status = status;
     }
