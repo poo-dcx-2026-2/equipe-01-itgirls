@@ -11,6 +11,30 @@
 skinparam classAttributeIconSize 0
 hide empty members
 
+
+interface AcervoService {
+  + cadastrarItem(codigo: String, titulo: String, autoria: String, categoria: String, ano: int): void
+  + buscarItem(codigo: String): ItemView
+  + listarItens(): List<ItemView>
+  + buscarPorTitulo(trecho: String): List<ItemView>
+  + buscarPorCategoria(categoria: String): List<ItemView>
+  + adicionarExemplar(codigoDoItem: String, tombo: String): void
+  + listarExemplares(codigoDoItem: String): List<ExemplarView>
+  + baixarExemplar(tombo: String): void
+  + cadastrarUsuario(matricula: String, nome: String): void
+  + buscarUsuario(matricula: String): UsuarioView
+  + listarUsuarios(): List<UsuarioView>
+}
+
+class AcervoEmMemoria implements AcervoService {
+  - usuarios: Map<String, Usuario>
+  - itens: Map<String, Item>
+  - tombosGlobais: Map<String, Exemplar>
+}
+
+
+
+
 class Item {
   - codigo : String
   - titulo : String
@@ -20,6 +44,7 @@ class Item {
   + adicionarExemplar(exemplar : Exemplar) : void
   + totalDeExemplares() : int
   + exemplaresDisponiveis() : int
+  + removerExemplar(exemplar : Exemplar) : void
 }
 
 class Exemplar {
@@ -40,6 +65,9 @@ class Usuario {
   - nome : String
 }
 
+AcervoEmMemoria "1" *-- "0..*" Item : gerencia
+AcervoEmMemoria "1" *-- "0..*" Usuario : gerencia
+AcervoEmMemoria "1" *-- "0..*" Exemplar : controla
 Item "1" *-- "0..*" Exemplar : possui
 Exemplar --> StatusExemplar : possui
 @enduml
