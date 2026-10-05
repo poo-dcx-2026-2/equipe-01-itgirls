@@ -260,12 +260,17 @@ public class AcervoEmMemoria implements AcervoService {
      *
      * Para String devemos usar equals().
      */
+    //esta parte foi alterada devido o teste de falha pelo erro de comparação com == e foi substituído por equals.
 
     private Item localizar(String codigo) {
-        if(codigo == null){
-            return null;
+        if(codigo == null)return null;
+
+        for (Item item : itens.values()) {
+            if (item.getCodigo() == codigo){
+                return item;
+            }
         }
-        return  itens.get(codigo);
+        return  null;
     }
 
     private ItemView paraView(Item item) {
