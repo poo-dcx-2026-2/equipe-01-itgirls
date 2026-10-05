@@ -2,6 +2,7 @@ package br.ufpb.dcx.poo.biblioteca.inicial;
 
 import br.ufpb.dcx.poo.biblioteca.contrato.StatusExemplar;
 import br.ufpb.dcx.poo.biblioteca.contrato.excecoes.DadosInvalidosException;
+import br.ufpb.dcx.poo.biblioteca.contrato.excecoes.RecursoDuplicadoException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -56,11 +57,21 @@ public class Item {
 
     public int getAno() { return ano; }
 
-    public void adicionarExemplar(Exemplar exemplar) {
-        exemplares.add(exemplar);
+    public void adicionarExemplar(Exemplar exemplar) throws RecursoDuplicadoException {
+        if (exemplar == null){
+            throw new DadosInvalidosException("O exemplar não pode ser nulo.");
+        }
+
+        for (Exemplar e : exemplares){
+            if (e.getTombo().equals(exemplar.getTombo())){
+                throw new RecursoDuplicadoException("Já exeiste um exemplaar com tombo:" + exemplar.getTombo());
+            }
+        }
+
+    exemplares.add(exemplar);
     }
 
-    public int totalDeExemplares() {
+    public int totalDeExemplares(){
         return exemplares.size();
     }
 
@@ -77,7 +88,7 @@ public class Item {
     }
 
     public List<Exemplar> getExemplares() {
-        return exemplares;
+        return List.copyOf(exemplares);
     }
 
 

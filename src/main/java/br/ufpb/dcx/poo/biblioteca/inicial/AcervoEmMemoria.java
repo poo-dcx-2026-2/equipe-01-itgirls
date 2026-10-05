@@ -1,9 +1,6 @@
 package br.ufpb.dcx.poo.biblioteca.inicial;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import br.ufpb.dcx.poo.biblioteca.contrato.AcervoService;
 import br.ufpb.dcx.poo.biblioteca.contrato.ExemplarView;
@@ -42,7 +39,9 @@ public class AcervoEmMemoria implements AcervoService {
 
     @Override
     public ItemView buscarItem(String codigo)
-            throws RecursoNaoEncontradoException {
+            throws DadosInvalidosException,  RecursoNaoEncontradoException {
+
+        exigirTextoPreenchido(codigo , "codigo");
 
         Item item = localizar(codigo);
 
@@ -63,10 +62,7 @@ public class AcervoEmMemoria implements AcervoService {
             resultado.add(paraView(item));
         }
 
-        resultado.sort(
-                (a, b) ->
-                        a.titulo().compareToIgnoreCase(b.titulo()));
-
+        resultado.sort(Comparator.comparing(ItemView::titulo,String.CASE_INSENSITIVE_ORDER));
         return resultado;
     }
 
@@ -75,7 +71,7 @@ public class AcervoEmMemoria implements AcervoService {
 
         List<ItemView> resultado = new ArrayList<>();
 
-        if (trecho == null) {
+        if (trecho == null || trecho.isBlank()) {
             return resultado;
         }
 
@@ -83,19 +79,14 @@ public class AcervoEmMemoria implements AcervoService {
 
         for (Item item : itens.values()) {
 
-            if (item.getTitulo()
-                    .toLowerCase()
-                    .contains(pesquisa)) {
+            if (item.getTitulo() != null
+                && item.getTitulo().toLowerCase().contains(pesquisa)) {
 
                 resultado.add(paraView(item));
             }
         }
 
-        resultado.sort(
-                (a, b) ->
-                        a.titulo().compareToIgnoreCase(b.titulo())
-        );
-
+        resultado.sort(Comparator.comparing(ItemView::titulo,  String.CASE_INSENSITIVE_ORDER));
         return resultado;
     }
 
@@ -104,7 +95,7 @@ public class AcervoEmMemoria implements AcervoService {
 
         List<ItemView> resultado = new ArrayList<>();
 
-        if (categoria == null) {
+        if (categoria == null || categoria.isBlank() ) {
             return resultado;
         }
 
@@ -117,18 +108,14 @@ public class AcervoEmMemoria implements AcervoService {
             }
         }
 
-        resultado.sort(
-                (a, b) ->
-                        a.titulo().compareToIgnoreCase(b.titulo())
-        );
-
+        resultado.sort(Comparator.comparing(ItemView::titulo, String.CASE_INSENSITIVE_ORDER));
         return resultado;
     }
 
     @Override
     public void adicionarExemplar(String codigoDoItem, String tombo)
-            throws RecursoNaoEncontradoException, RecursoDuplicadoException {
-
+            throws RecursoNaoEncontradoException, RecursoDuplicadoException, DadosInvalidosException {
+        exigirTextoPreenchido(codigoDoItem, "código do item");
         exigirTextoPreenchido(tombo, "tombo");
 
         Item item = localizar(codigoDoItem);
@@ -152,7 +139,7 @@ public class AcervoEmMemoria implements AcervoService {
 
     @Override
     public List<ExemplarView> listarExemplares(String codigoDoItem)
-            throws RecursoNaoEncontradoException {
+            throws RecursoNaoEncontradoException, DadosInvalidosException {
 
         Item item = localizar(codigoDoItem);
 
@@ -184,39 +171,31 @@ public class AcervoEmMemoria implements AcervoService {
 
     @Override
     public void baixarExemplar(String tombo)
-            throws RecursoNaoEncontradoException, OperacaoNaoPermitidaException {
+            throws RecursoNaoEncontradoException, OperacaoNaoPermitidaException , DadosInvalidosException {
+        exigirTextoPreenchido(tombo, "tombo");
 
-        Exemplar exemplarEncontrado = null;
-        Item itemDoExemplar = null;
-
-        for (Item item : itens.values()) {
-
-            for (Exemplar exemplar : item.getExemplares()) {
-
-                if (exemplar.getTombo().equals(tombo)) {
-
-                    exemplarEncontrado = exemplar;
-                    itemDoExemplar = item;
-                    break;
-                }
-            }
-
-            if (exemplarEncontrado != null) {
-                break;
-            }
-        }
+        Exemplar exemplarEncontrado = tombosGlobais.get(tombo);
 
         if (exemplarEncontrado == null) {
             throw new RecursoNaoEncontradoException(
                     "Exemplar não encontrado: " + tombo);
+
         }
 
         if (exemplarEncontrado.getStatus() != StatusExemplar.DISPONIVEL) {
             throw new OperacaoNaoPermitidaException(
-                    "Exemplar não pode ser baixado");
+                    "exemplar não está disponivel para ser baixado");
         }
 
-        itemDoExemplar.getExemplares().remove(exemplarEncontrado);
+
+        Item itemDoExemplar = localizar(exemplarEncontrado.getCodigoDoItem());
+
+
+        if (itemDoExemplar != null) {
+            itemDoExemplar.getExemplares().remove(exemplarEncontrado);
+
+        }
+        tombosGlobais.remove(tombo);
     }
 
     /**
@@ -227,6 +206,9 @@ public class AcervoEmMemoria implements AcervoService {
      */
 
     private Item localizar(String codigo) {
+        if(codigo == null){
+            return null;
+        }
         return  itens.get(codigo);
     }
 
