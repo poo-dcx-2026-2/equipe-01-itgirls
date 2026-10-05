@@ -1,21 +1,21 @@
-﻿# Sistema de Gestão de Biblioteca/Acervo
+﻿# Sistema de Gestao de Biblioteca / Acervo
 
-Projeto incremental da disciplina de Programação Orientada a Objetos — DCX/CCAE/UFPB.  
-**Equipe 01 - itgirls**
+Projeto incremental da disciplina de Programacao Orientada a Objetos - DCX/CCAE/UFPB.
+Equipe 01 - itgirls
 
 ---
 
-## 👥 Equipe
+## Equipe
 
-| Nome | Matrícula | GitHub |
+| Nome | Matricula | GitHub |
 |---|---|---|
-| **Ana Lívia Patricio Santos** | 20250114384 | `anasantos029` |
-| **Anny Beatriz Lima Gaião** | 20250114366 | `annygaiao` |
-| **Bianca Vitória de Almeida Félix** | 20250114007 | `biancavitoriaf` |
+| Ana Livia Patricio Santos | 20250114384 | anasantos029 |
+| Anny Beatriz Lima Gaiao | 20250114366 | annygaiao |
+| Bianca Vitoria de Almeida Felix | 20250114007 | biancavitoriaf |
 
 ---
 
-## 🗺️ Mapa do Projeto
+## Mapa do Projeto
 
 \\\	ext
 equipe-01-itgirls/
@@ -39,55 +39,55 @@ equipe-01-itgirls/
 
 ---
 
-## 🚀 Como Executar os Testes
+## Como Executar os Testes
 
-### Pré-requisitos
+### Pre-requisitos
 * Java JDK 17 ou superior.
 * Maven instalado (ou suporte a Maven na IDE).
 
 ### Linha de Comando (Terminal)
-No diretório raiz do projeto, execute:
+No diretorio raiz do projeto, execute:
 
 \\\ash
 # Executar todos os testes da suite
 mvn test
 \\\
 
-> **Status da Suite:** Todos os testes legados da Entrega 1 foram reabilitados (remoção do @Disabled) e estão passando 100% junto com as novas suítes de testes automatizados.
+Status da Suite: Todos os testes legados da Entrega 1 foram reabilitados (remocao do @Disabled) e estao passando 100% junto com as novas suites de testes automatizados.
 
 ### Pela IDE (IntelliJ IDEA)
 1. Abra o projeto no IntelliJ IDEA.
-2. Navegue até a pasta \src/test/java\.
-3. Clique com o botão direito sobre a pasta e selecione **Run 'All Tests'**.
+2. Navegue ate a pasta src/test/java.
+3. Clique com o botao direito sobre a pasta e selecione "Run 'All Tests'".
 
 ---
 
-## 📚 Justificativa das Coleções Utilizadas
+## Justificativa das Colecoes Utilizadas
 
-A escolha das coleções na classe \AcervoEmMemoria\ considerou a eficiência das operações, a unicidade e a complexidade de busca:
+A escolha das colecoes na classe AcervoEmMemoria considerou a eficiencia das operacoes, a unicidade e a complexidade de busca:
 
-1. **\Map<String, Item> itens\ (\HashMap\)**:
-   - **Justificativa**: Permite a busca direta de itens pelo seu código único com complexidade O(1) em média, além de evitar duplicidade no cadastro utilizando o código do item como chave.
+1. **Map<String, Item> itens (HashMap)**:
+   - Justificativa: Permite a busca direta de itens pelo seu codigo unico com complexidade O(1) em media, alem de evitar duplicidade no cadastro utilizando o codigo do item como chave.
 
-2. **\Map<String, Usuario> usuarios\ (\HashMap\)**:
-   - **Justificativa**: Garante acesso instantâneo O(1) aos dados do usuário através da sua matrícula, facilitando validações de cadastro e consultas sem iterações desnecessárias.
+2. **Map<String, Usuario> usuarios (HashMap)**:
+   - Justificativa: Garante acesso instantaneo O(1) aos dados do usuario atraves da sua matricula, facilitando validacoes de cadastro e consultas sem iteracoes desnecessarias.
 
-3. **\Map<String, Exemplar> tombosGlobais\ (\HashMap\)**:
-   - **Justificativa**: Permite controle e busca direta de exemplares por **tombo**, tornando a verificação de duplicidade e o processo de baixa de exemplares mais eficientes.
+3. **Map<String, Exemplar> tombosGlobais (HashMap)**:
+   - Justificativa: Permite controle e busca direta de exemplares por tombo, tornando a verificacao de duplicidade e o processo de baixa de exemplares mais eficientes.
 
-4. **\List<Exemplar> exemplares\ (\ArrayList\) dentro de \Item\**:
-   - **Justificativa**: Utilizado para armazenar a sequência de exemplares pertencentes a um item específico. Garante iteração rápida para contagem de exemplares disponíveis e preserva a ordem de inserção.
+4. **List<Exemplar> exemplares (ArrayList) dentro de Item**:
+   - Justificativa: Utilizado para armazenar a sequencia de exemplares pertencentes a um item especifico. Garante iteracao rapida para contagem de exemplares disponiveis e preserva a ordem de insercao.
 
 ---
 
-## 🎨 Extensão Autoral
+## Extensao Autoral
 
 * **Acervo Escolhido**: Livros
-* **Regra de Negócio**: **Restrição por classificação indicativa** — A biblioteca precisa validar a idade do usuário antes de realizar o empréstimo de livros por meio da classificação etária associada ao exemplar.
+* **Regra de Negocio**: Restricao por classificacao indicativa - A biblioteca precisa validar a idade do usuario antes de realizar o emprestimo de livros por meio da classificacao etaria associada ao exemplar.
 
 ---
 
-## 📄 Regras do Projeto
+## Regras do Projeto
 
-1. **Pacote Contrato**: Mantido **congelado** conforme diretrizes da disciplina.
-2. **\Fabrica.novaBiblioteca()\**: Mantido para prover instâncias limpas do sistema para a execução das suítes de teste.
+1. **Pacote Contrato**: Mantido congelado conforme diretrizes da disciplina.
+2. **Fabrica.novaBiblioteca()**: Mantido para prover instancias limpas do sistema para a execucao das suites de teste.
