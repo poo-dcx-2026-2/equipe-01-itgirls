@@ -64,27 +64,40 @@ public class AcervoEmMemoria implements AcervoService {
         return resultado;
     }
 
+    // os métodos a seguir não estavam implementados
+
     @Override
     public List<ItemView> buscarPorTitulo(String trecho) {
 
+        // Cria uma lista vazia para guardar os itens encontrados.
         List<ItemView> resultado = new ArrayList<>();
 
+        // Verifica se o trecho informado é nulo ou está vazio.
+        // Nesse caso, retorna a lista vazia.
         if (trecho == null || trecho.isBlank()) {
             return resultado;
         }
 
+        // Converte o trecho pesquisado para letras minúsculas.
+        // Isso facilita a busca sem diferenciar maiúsculas de minúsculas.
         String pesquisa = trecho.toLowerCase();
 
+        // Percorre todos os itens cadastrados no acervo.
         for (Item item : itens.values()) {
 
-            if (item.getTitulo() != null
-                && item.getTitulo().toLowerCase().contains(pesquisa)) {
+            // Verifica se o item possui título e se o título contém
+            // o trecho pesquisado.
+            if (item.getTitulo() != null &&
+                    item.getTitulo().toLowerCase().contains(pesquisa)) {
 
+                // Adiciona o item encontrado à lista de resultados.
                 resultado.add(paraView(item));
             }
         }
 
-        resultado.sort(Comparator.comparing(ItemView::titulo,  String.CASE_INSENSITIVE_ORDER));
+        // Ordena os resultados pelo título, ignorando maiúsculas e minúsculas.
+        resultado.sort((a, b) -> a.titulo().compareToIgnoreCase(b.titulo()));
+
         return resultado;
     }
 
@@ -93,45 +106,57 @@ public class AcervoEmMemoria implements AcervoService {
 
         List<ItemView> resultado = new ArrayList<>();
 
-        if (categoria == null || categoria.isBlank() ) {
+        if (categoria == null || categoria.isBlank()) {
             return resultado;
         }
 
         for (Item item : itens.values()) {
 
-            if (item.getCategoria() != null
-                    && item.getCategoria().equalsIgnoreCase(categoria)) {
+            // Verifica se o item possui categoria e se ela é igual
+            // à categoria pesquisada, ignorando maiúsculas e minúsculas.
+            if (item.getCategoria() != null &&
+                    item.getCategoria().equalsIgnoreCase(categoria)) {
 
                 resultado.add(paraView(item));
             }
         }
 
-        resultado.sort(Comparator.comparing(ItemView::titulo, String.CASE_INSENSITIVE_ORDER));
+        // Ordena os resultados pelo título.
+        resultado.sort((a, b) -> a.titulo().compareToIgnoreCase(b.titulo()));
+
         return resultado;
     }
 
     @Override
     public void adicionarExemplar(String codigoDoItem, String tombo)
             throws RecursoNaoEncontradoException, RecursoDuplicadoException, DadosInvalidosException {
+
+        // Verifica se o código do item e o tombo foram preenchidos.
         exigirTextoPreenchido(codigoDoItem, "código do item");
         exigirTextoPreenchido(tombo, "tombo");
 
+        // Procura o item pelo código informado.
         Item item = localizar(codigoDoItem);
 
+        // Se o item não existir, lança uma exceção.
         if (item == null) {
             throw new RecursoNaoEncontradoException(
                     "Item não encontrado: " + codigoDoItem);
         }
 
+        // Verifica se já existe outro exemplar com o mesmo tombo.
         if (tombosGlobais.containsKey(tombo)) {
             throw new RecursoDuplicadoException(
                     "Já existe um exemplar cadastrado com tombo: " + tombo);
         }
 
+        // Cria um novo exemplar com o tombo e o código do item.
         Exemplar exemplar = new Exemplar(tombo, codigoDoItem);
 
+        // Adiciona o exemplar ao item correspondente.
         item.adicionarExemplar(exemplar);
 
+        // Adiciona o exemplar ao mapa global de tombos.
         tombosGlobais.put(tombo, exemplar);
     }
 
@@ -139,6 +164,7 @@ public class AcervoEmMemoria implements AcervoService {
     public List<ExemplarView> listarExemplares(String codigoDoItem)
             throws RecursoNaoEncontradoException, DadosInvalidosException {
 
+        // Verifica se o código do item foi preenchido.
         exigirTextoPreenchido(codigoDoItem, "código do item");
 
         Item item = localizar(codigoDoItem);
@@ -148,10 +174,13 @@ public class AcervoEmMemoria implements AcervoService {
                     "Item não encontrado com o código: " + codigoDoItem);
         }
 
+        // Cria uma lista para guardar os exemplares do item.
         List<ExemplarView> resultado = new ArrayList<>();
 
+        // Percorre todos os exemplares cadastrados no item.
         for (Exemplar exemplar : item.getExemplares()) {
 
+            // Cria uma visualização do exemplar e adiciona à lista.
             resultado.add(
                     new ExemplarView(
                             exemplar.getTombo(),
@@ -161,35 +190,45 @@ public class AcervoEmMemoria implements AcervoService {
             );
         }
 
-        resultado.sort(Comparator.comparing(ExemplarView::tombo, String.CASE_INSENSITIVE_ORDER));
+        resultado.sort((a, b) -> a.tombo().compareToIgnoreCase(b.tombo()));
+
         return resultado;
     }
 
     @Override
     public void baixarExemplar(String tombo)
-            throws RecursoNaoEncontradoException, OperacaoNaoPermitidaException , DadosInvalidosException {
+            throws RecursoNaoEncontradoException,
+            OperacaoNaoPermitidaException,
+            DadosInvalidosException {
+
+        // Verifica se o tombo foi preenchido.
         exigirTextoPreenchido(tombo, "tombo");
 
+        // Procura o exemplar pelo tombo no mapa global.
         Exemplar exemplarEncontrado = tombosGlobais.get(tombo);
 
         if (exemplarEncontrado == null) {
             throw new RecursoNaoEncontradoException(
                     "Exemplar não encontrado: " + tombo);
-
         }
 
+        // Verifica se o exemplar está disponível para ser baixado.
+        // Um exemplar que não está disponível não pode ser removido.
         if (exemplarEncontrado.getStatus() != StatusExemplar.DISPONIVEL) {
             throw new OperacaoNaoPermitidaException(
-                    "exemplar não está disponivel para ser baixado");
+                    "Exemplar não está disponível para ser baixado");
         }
 
+        // Procura o item ao qual o exemplar pertence.
+        Item itemDoExemplar =
+                localizar(exemplarEncontrado.getCodigoDoItem());
 
-        Item itemDoExemplar = localizar(exemplarEncontrado.getCodigoDoItem());
-
-        if (itemDoExemplar != null){
+        // Se o item for encontrado, remove o exemplar dele.
+        if (itemDoExemplar != null) {
             itemDoExemplar.removerExemplar(exemplarEncontrado);
         }
 
+        // Remove o exemplar do mapa global de tombos.
         tombosGlobais.remove(tombo);
     }
 
@@ -266,7 +305,7 @@ public class AcervoEmMemoria implements AcervoService {
         if(codigo == null)return null;
 
         for (Item item : itens.values()) {
-            if (item.getCodigo() == codigo){
+            if (item.getCodigo().equals(codigo)) {
                 return item;
             }
         }
