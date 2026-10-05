@@ -44,7 +44,7 @@ public class Usuario {
     public void incrementEmprestimosAtivos() {
         this.emprestimosAtivos++;
     }
-    public void decrementEmprestimosAtivos(){
+    public void decrementEmprestimosAtivos() {
         if (this.emprestimosAtivos > 0) {
             this.emprestimosAtivos--;
         }
