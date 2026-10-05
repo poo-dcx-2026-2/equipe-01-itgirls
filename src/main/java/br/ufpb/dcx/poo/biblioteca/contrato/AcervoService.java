@@ -13,4 +13,12 @@ public interface AcervoService {
     List<ExemplarView> listarExemplares(String codigoDoItem) throws RecursoNaoEncontradoException;
     void baixarExemplar(String tombo)
             throws RecursoNaoEncontradoException, OperacaoNaoPermitidaException;
+
+    void cadastrarUsuario(String matricula, String nome)
+            throws DadosInvalidosException, RecursoDuplicadoException;
+
+    UsuarioView buscarUsuario(String matricula)
+            throws DadosInvalidosException, RecursoNaoEncontradoException;
+
+    List<UsuarioView> listarUsuarios();
 }

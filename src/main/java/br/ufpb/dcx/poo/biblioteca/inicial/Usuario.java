@@ -7,6 +7,10 @@ public class Usuario {
     private final String matricula;
     private final String nome;
 
+    private boolean ativo;
+    private int emprestimosAtivos;
+
+
     public Usuario(String matricula, String nome) {
         if (matricula == null || matricula.isBlank()) {
             throw new DadosInvalidosException("A matrícula é obrigatória.");
@@ -16,6 +20,9 @@ public class Usuario {
         }
         this.matricula = matricula;
         this.nome = nome;
+
+        this.ativo = true;
+        this.emprestimosAtivos = 0;
     }
 
     public String getMatricula() {
@@ -25,4 +32,24 @@ public class Usuario {
     public String getNome() {
         return nome;
     }
+
+    public boolean isAtivo() {
+        return ativo;
+    }
+
+    public int getEmprestimosAtivos() {
+        return emprestimosAtivos;
+    }
+
+    public void incrementEmprestimosAtivos() {
+        this.emprestimosAtivos++;
+    }
+    public void decrementEmprestimosAtivos(){
+        if (this.emprestimosAtivos > 0) {
+            this.emprestimosAtivos--;
+        }
+    }
+
+
+
 }
