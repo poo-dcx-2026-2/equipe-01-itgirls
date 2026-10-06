@@ -9,17 +9,21 @@ sim.
 
 ## Equipe
 
-| Nome | Matrícula |
-|---|---|
-| | |
+| Nome                      | Matrícula   |
+|---------------------------|-------------|
+| Ana Livia Patricio Santos | 20250114384 |
+| Anny Beatriz Lima Gaiao | 20250114366 |
+| Bianca Vitoria de Almeida Felix | 20250114007 |
 
 ## Uso declarado
 
 Uma linha por uso relevante. Se não houve uso, escreva "Não houve uso de ferramentas de IA".
 
-| Data | Ferramenta | Finalidade | Arquivos/trechos afetados | O que foi revisado e alterado por vocês |
-|---|---|---|---|---|
-| | | | | |
+| Data  | Ferramenta | Finalidade                           | Arquivos/trechos afetados            | O que foi revisado e alterado por vocês |
+|-------|----------|--------------------------------------|--------------------------------------|-----------------------------------------|
+| 04/10 | Chatgpt  | Ajudar a encontrar os erros do teste | Os testes                            | Os erros nos testes                     |
+| 05/10 | Chatgpt  | Ajudar no erro do commit             | Usado apenas para conseguir commitar | Conseguir commitar direto no branch     |
+| 05/10 | Chatgpt  | Ajudou no diagrama de Usuario        | Usuario no diagrama UML              | Falta de métodos e erros de sintaxe     |
 
 ## Compromisso
 
@@ -32,3 +36,9 @@ Ao entregar, a equipe declara que:
   na defesa da Entrega 3.
 
 Assinaturas (nome e data):
+ 
+Ana Lívia Patricio Santos 05/10
+
+Anny Beatriz Lima Gaião 05/10
+
+Bianca Vitória de Almeida Felix 05/10

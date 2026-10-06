@@ -1,47 +1,89 @@
 @startuml
-' Modelo de domínio do sistema: Entrega 1.
-'
-' Este arquivo é o ponto de partida. Substitua pelo modelo da sua equipe.
-' O diagrama precisa corresponder ao código entregue.
-'
-' Para gerar a imagem: instale o plugin PlantUML no IntelliJ, ou use
-'   plantuml docs/modelo.puml
-' e versione a imagem gerada ao lado deste arquivo.
 
 skinparam classAttributeIconSize 0
 hide empty members
 
+interface AcervoService {
+    +cadastrarItem(codigo: String, titulo: String, autoria: String, categoria: String, ano: int): void
+    +buscarItem(codigo: String): ItemView
+    +listarItens(): List<ItemView>
+    +buscarPorTitulo(trecho: String): List<ItemView>
+    +buscarPorCategoria(categoria: String): List<ItemView>
+    +adicionarExemplar(codigoDoItem: String, tombo: String): void
+    +listarExemplares(codigoDoItem: String): List<ExemplarView>
+    +baixarExemplar(tombo: String): void
+}
+
+class AcervoEmMemoria {
+    -itens: Map<String, Item>
+    -tombosGlobais: Map<String, Exemplar>
+}
+
+AcervoEmMemoria ..|> AcervoService
+
+
+interface Usuarios {
+    +cadastrarUsuario(matricula: String, nome: String): void
+    +buscarUsuario(matricula: String): UsuarioView
+    +listarUsuarios(): List<UsuarioView>
+    +desativarUsuario(matricula: String): void
+    +reativarUsuario(matricula: String): void
+}
+
+class UsuariosEmMemoria {
+    -usuarios: Map<String, Usuario>
+}
+
+UsuariosEmMemoria ..|> Usuarios
+
+
 class Item {
-  - codigo : String
-  - titulo : String
-  - autoria : String
-  - categoria : String
-  - ano : int
-  + adicionarExemplar(exemplar : Exemplar) : void
-  + totalDeExemplares() : int
-  + exemplaresDisponiveis() : int
+    -codigo: String
+    -titulo: String
+    -autoria: String
+    -categoria: String
+    -ano: int
+
+    +adicionarExemplar(exemplar: Exemplar): void
+    +totalDeExemplares(): int
+    +exemplaresDisponiveis(): int
+    +removerExemplar(exemplar: Exemplar): void
 }
 
 class Exemplar {
-  - tombo : String
-  - codigoDoItem : String
-  - status : StatusExemplar
-}
-
-enum StatusExemplar {
-  DISPONIVEL
-  EMPRESTADO
-  RESERVADO
-  INDISPONIVEL
+    -tombo: String
+    -codigoDoItem: String
+    -status: StatusExemplar
 }
 
 class Usuario {
-  - matricula : String
-  - nome : String
-  - ativo : boolean
-  - emprestimosAtivos : int
+    -matricula: String
+    -nome: String
+    -ativo: boolean
+    -emprestimosAtivos: int
+
+    +isAtivo(): boolean
+    +getEmprestimosAtivos(): int
+    +incrementEmprestimosAtivos(): void
+    +decrementEmprestimosAtivos(): void
 }
 
+enum StatusExemplar {
+    DISPONIVEL
+    EMPRESTADO
+    RESERVADO
+    INDISPONIVEL
+}
+
+
+AcervoEmMemoria "1" -- "0..*" Item : gerencia
+
 Item "1" *-- "0..*" Exemplar : possui
+
+AcervoEmMemoria "1" -- "0..*" Exemplar : controla tombos
+
+UsuariosEmMemoria "1" -- "0..*" Usuario : gerencia
+
 Exemplar --> StatusExemplar : possui
+
 @enduml

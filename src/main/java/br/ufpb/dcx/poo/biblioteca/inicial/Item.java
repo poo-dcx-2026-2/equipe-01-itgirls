@@ -1,5 +1,9 @@
 package br.ufpb.dcx.poo.biblioteca.inicial;
 
+import br.ufpb.dcx.poo.biblioteca.contrato.StatusExemplar;
+import br.ufpb.dcx.poo.biblioteca.contrato.excecoes.DadosInvalidosException;
+import br.ufpb.dcx.poo.biblioteca.contrato.excecoes.RecursoDuplicadoException;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,16 +20,26 @@ public class Item {
     //os atributos não são final, podem ser mudados, oq não deve acontecer
     //colocar como final
 
-    private String codigo;
-    private String titulo;
-    private String autoria;
-    private String categoria;
-    private int ano;
+    private final String codigo;
+    private final String titulo;
+    private final String autoria;
+    private final String categoria;
+    private final int ano;
+
     private final List<Exemplar> exemplares = new ArrayList<>();
 
     //fazer exceçoes, tá aceitando qualquer item
 
     public Item(String codigo, String titulo, String autoria, String categoria, int ano) {
+
+        if (codigo == null || codigo.isBlank()) {
+            throw new DadosInvalidosException("O código é obrigatório.");
+        }
+
+        if (titulo == null || titulo.isBlank()) {
+            throw new DadosInvalidosException("O título é obrigatório.");
+        }
+
         this.codigo = codigo;
         this.titulo = titulo;
         this.autoria = autoria;
@@ -34,21 +48,56 @@ public class Item {
     }
 
     public String getCodigo() { return codigo; }
-    public void setCodigo(String codigo) { this.codigo = codigo; }
 
     public String getTitulo() { return titulo; }
-    public void setTitulo(String titulo) { this.titulo = titulo; }
 
     public String getAutoria() { return autoria; }
-    public void setAutoria(String autoria) { this.autoria = autoria; }
 
     public String getCategoria() { return categoria; }
-    public void setCategoria(String categoria) { this.categoria = categoria; }
 
     public int getAno() { return ano; }
-    public void setAno(int ano) { this.ano = ano; }
 
-    public List<Exemplar> getExemplares() { return exemplares; }
+    public void adicionarExemplar(Exemplar exemplar) throws RecursoDuplicadoException {
+        if (exemplar == null){
+            throw new DadosInvalidosException("O exemplar não pode ser nulo.");
+        }
+
+        for (Exemplar e : exemplares){
+            if (e.getTombo().equals(exemplar.getTombo())){
+                throw new RecursoDuplicadoException("Já exeiste um exemplaar com tombo:" + exemplar.getTombo());
+            }
+        }
+
+    exemplares.add(exemplar);
+    }
+
+    public void removerExemplar(Exemplar exemplar){
+        if (exemplar != null){
+            this.exemplares.remove(exemplar);
+        }
+    }
+
+    public int totalDeExemplares(){
+        return exemplares.size();
+    }
+
+    public int exemplaresDisponiveis() {
+        int quantidade = 0;
+
+        for (Exemplar exemplar : exemplares) {
+            if (exemplar.getStatus() == StatusExemplar.DISPONIVEL) {
+                quantidade++;
+            }
+        }
+
+        return quantidade;
+    }
+
+    public List<Exemplar> getExemplares() {
+        return new ArrayList<>(exemplares);
+    }
+
+
 
     //nao pode ter set e deve ter metodos proprios, os que tão lá no diagrama
     //nada de getExemplares
