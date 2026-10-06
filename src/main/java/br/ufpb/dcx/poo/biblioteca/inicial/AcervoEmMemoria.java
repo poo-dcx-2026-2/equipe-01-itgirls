@@ -302,14 +302,8 @@ public class AcervoEmMemoria implements AcervoService {
     //esta parte foi alterada devido o teste de falha pelo erro de comparação com == e foi substituído por equals.
 
     private Item localizar(String codigo) {
-        if(codigo == null)return null;
-
-        for (Item item : itens.values()) {
-            if (item.getCodigo().equals(codigo)) {
-                return item;
-            }
-        }
-        return  null;
+        if (codigo == null) return null;
+        return itens.get(codigo);
     }
 
     private ItemView paraView(Item item) {
@@ -348,3 +342,4 @@ public class AcervoEmMemoria implements AcervoService {
         return new ArrayList<>(itens.values());
     }
 }
+
