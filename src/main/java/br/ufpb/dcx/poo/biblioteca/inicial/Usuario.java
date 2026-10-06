@@ -11,7 +11,7 @@ public class Usuario {
     // Indica se o usuário está ativo na biblioteca.
     private boolean ativo;
 
-    // Guarda a quantidade de empréstimos que o usuário possui atualmente.
+    // Guarda a quantidade de empréstimos que o usuário possui atualmente
     private int emprestimosAtivos;
 
 
