@@ -295,7 +295,7 @@ public class AcervoEmMemoria implements AcervoService {
 
     /**
      * O erro oculto que encontramos foi:
-     * if (item.getCodigo() == codigo)
+     * if (item.getCodigo().equals(codigo))
      *
      * Para String devemos usar equals().
      */
