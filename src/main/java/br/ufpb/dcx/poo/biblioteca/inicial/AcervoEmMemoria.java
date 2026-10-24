@@ -48,7 +48,7 @@ public class AcervoEmMemoria implements AcervoService {
                     "Item não encontrado: " + codigo);
         }
 
-        return paraView(item);
+        return visaoDe(item);
     }
 
     @Override
@@ -57,7 +57,7 @@ public class AcervoEmMemoria implements AcervoService {
         List<ItemView> resultado = new ArrayList<>();
 
         for (Item item : itens.values()) {
-            resultado.add(paraView(item));
+            resultado.add(visaoDe(item));
         }
 
         resultado.sort(Comparator.comparing(ItemView::titulo,String.CASE_INSENSITIVE_ORDER));
@@ -91,7 +91,7 @@ public class AcervoEmMemoria implements AcervoService {
                     item.getTitulo().toLowerCase().contains(pesquisa)) {
 
                 // Adiciona o item encontrado à lista de resultados.
-                resultado.add(paraView(item));
+                resultado.add(visaoDe(item));
             }
         }
 
@@ -117,7 +117,7 @@ public class AcervoEmMemoria implements AcervoService {
             if (item.getCategoria() != null &&
                     item.getCategoria().equalsIgnoreCase(categoria)) {
 
-                resultado.add(paraView(item));
+                resultado.add(visaoDe(item));
             }
         }
 
@@ -248,8 +248,6 @@ public class AcervoEmMemoria implements AcervoService {
         usuarios.put(matricula, usuario);
     }
 
-
-
     @Override
     public UsuarioView buscarUsuario(String matricula)
             throws DadosInvalidosException, RecursoNaoEncontradoException {
@@ -289,8 +287,6 @@ public class AcervoEmMemoria implements AcervoService {
                 usuario.isAtivo(),
                 usuario.getEmprestimosAtivos()
         );
-
-
     }
 
     /**
@@ -306,7 +302,7 @@ public class AcervoEmMemoria implements AcervoService {
         return itens.get(codigo);
     }
 
-    private ItemView paraView(Item item) {
+    private ItemView visaoDe(Item item) {
 
         int disponiveis = 0;
 
@@ -342,4 +338,3 @@ public class AcervoEmMemoria implements AcervoService {
         return new ArrayList<>(itens.values());
     }
 }
-
