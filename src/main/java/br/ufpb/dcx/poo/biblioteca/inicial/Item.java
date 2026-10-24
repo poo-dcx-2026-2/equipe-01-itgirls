@@ -5,6 +5,7 @@ import br.ufpb.dcx.poo.biblioteca.contrato.excecoes.DadosInvalidosException;
 import br.ufpb.dcx.poo.biblioteca.contrato.excecoes.RecursoDuplicadoException;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -94,7 +95,7 @@ public class Item {
     }
 
     public List<Exemplar> getExemplares() {
-        return new ArrayList<>(exemplares);
+        return Collections.unmodifiableList(exemplares);
     }
 
 
