@@ -37,9 +37,15 @@ public class AcervoEmMemoria implements AcervoService {
 
     @Override
     public ItemView buscarItem(String codigo)
-            throws DadosInvalidosException,  RecursoNaoEncontradoException {
+            throws DadosInvalidosException, RecursoNaoEncontradoException {
 
-        exigirTextoPreenchido(codigo , "codigo");
+        exigirTextoPreenchido(codigo, "codigo");
+
+        return visaoDe(itemExistente(codigo));
+    }
+
+    private Item itemExistente(String codigo)
+            throws RecursoNaoEncontradoException {
 
         Item item = localizar(codigo);
 
@@ -48,7 +54,7 @@ public class AcervoEmMemoria implements AcervoService {
                     "Item não encontrado: " + codigo);
         }
 
-        return visaoDe(item);
+        return item;
     }
 
     @Override
@@ -136,16 +142,10 @@ public class AcervoEmMemoria implements AcervoService {
         exigirTextoPreenchido(tombo, "tombo");
 
         // Procura o item pelo código informado.
-        Item item = localizar(codigoDoItem);
-
-        // Se o item não existir, lança uma exceção.
-        if (item == null) {
-            throw new RecursoNaoEncontradoException(
-                    "Item não encontrado: " + codigoDoItem);
-        }
+        Item item = itemExistente(codigoDoItem);
 
         // Verifica se já existe outro exemplar com o mesmo tombo.
-        if (tombosGlobais.containsKey(tombo)) {
+        if (tomboEmUso(tombo)) {
             throw new RecursoDuplicadoException(
                     "Já existe um exemplar cadastrado com tombo: " + tombo);
         }
@@ -159,6 +159,12 @@ public class AcervoEmMemoria implements AcervoService {
         // Adiciona o exemplar ao mapa global de tombos.
         tombosGlobais.put(tombo, exemplar);
     }
+
+
+    private boolean tomboEmUso(String tombo) {
+        return tombosGlobais.containsKey(tombo);
+    }
+
 
     @Override
     public List<ExemplarView> listarExemplares(String codigoDoItem)
