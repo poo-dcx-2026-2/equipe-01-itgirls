@@ -12,10 +12,17 @@ import br.ufpb.dcx.poo.biblioteca.contrato.excecoes.RecursoNaoEncontradoExceptio
 //dar uma olhada nesse map e nesses metodos
 
 public class AcervoEmMemoria implements AcervoService {
-    private final Map<String, Usuario> usuarios = new HashMap<>();
+    private final UsuarioService usuarios;
     private final Map<String, Item> itens = new HashMap<>();
     private final Map<String, Exemplar> tombosGlobais = new HashMap<>();
 
+    public AcervoEmMemoria() {
+        this(new UsuariosEmMemoria());
+    }
+
+    public AcervoEmMemoria(UsuarioService usuarios) {
+        this.usuarios = Objects.requireNonNull(usuarios);
+    }
 
     @Override
     public void cadastrarItem(String codigo, String titulo, String autoria,
@@ -241,51 +248,21 @@ public class AcervoEmMemoria implements AcervoService {
     @Override
     public void cadastrarUsuario(String matricula, String nome)
             throws DadosInvalidosException, RecursoDuplicadoException {
-        exigirTextoPreenchido(matricula, "matricula");
-        exigirTextoPreenchido(nome, "nome");
 
-        if (usuarios.containsKey(matricula)) {
-            throw new RecursoDuplicadoException(
-                    "Já existe usurario cadastrado com a matricula:" + matricula);
-
-        }
-
-        Usuario usuario = new Usuario(matricula, nome);
-        usuarios.put(matricula, usuario);
+        usuarios.cadastrarUsuario(matricula, nome);
     }
 
     @Override
     public UsuarioView buscarUsuario(String matricula)
             throws DadosInvalidosException, RecursoNaoEncontradoException {
 
-        exigirTextoPreenchido(matricula, "matrícula");
-
-        Usuario usuario = usuarios.get(matricula);
-
-        if (usuario == null) {
-            throw new RecursoNaoEncontradoException(
-                    "Usuário não encontrado com a matrícula: " + matricula);
-        }
-
-        return paraUsuarioView(usuario);
-
+        return usuarios.buscarUsuario(matricula);
     }
 
     @Override
     public List<UsuarioView> listarUsuarios() {
-
-        List<UsuarioView> resultado = new ArrayList<>();
-
-        for (Usuario usuario : usuarios.values()) {
-            resultado.add(paraUsuarioView(usuario));
-        }
-
-        resultado.sort(Comparator.comparing(UsuarioView::nome, String.CASE_INSENSITIVE_ORDER));
-
-        return resultado;
+        return usuarios.listarUsuarios();
     }
-
-
     private UsuarioView paraUsuarioView(Usuario usuario) {
         return new UsuarioView(
                 usuario.getMatricula(),
