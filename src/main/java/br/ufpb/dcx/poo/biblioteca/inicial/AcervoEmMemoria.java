@@ -12,10 +12,8 @@ import br.ufpb.dcx.poo.biblioteca.contrato.excecoes.RecursoNaoEncontradoExceptio
 //dar uma olhada nesse map e nesses metodos
 
 public class AcervoEmMemoria implements AcervoService {
-    private final Map<String, Usuario> usuarios = new HashMap<>();
     private final Map<String, Item> itens = new HashMap<>();
     private final Map<String, Exemplar> tombosGlobais = new HashMap<>();
-
 
     @Override
     public void cadastrarItem(String codigo, String titulo, String autoria,
@@ -236,63 +234,6 @@ public class AcervoEmMemoria implements AcervoService {
 
         // Remove o exemplar do mapa global de tombos.
         tombosGlobais.remove(tombo);
-    }
-
-    @Override
-    public void cadastrarUsuario(String matricula, String nome)
-            throws DadosInvalidosException, RecursoDuplicadoException {
-        exigirTextoPreenchido(matricula, "matricula");
-        exigirTextoPreenchido(nome, "nome");
-
-        if (usuarios.containsKey(matricula)) {
-            throw new RecursoDuplicadoException(
-                    "Já existe usurario cadastrado com a matricula:" + matricula);
-
-        }
-
-        Usuario usuario = new Usuario(matricula, nome);
-        usuarios.put(matricula, usuario);
-    }
-
-    @Override
-    public UsuarioView buscarUsuario(String matricula)
-            throws DadosInvalidosException, RecursoNaoEncontradoException {
-
-        exigirTextoPreenchido(matricula, "matrícula");
-
-        Usuario usuario = usuarios.get(matricula);
-
-        if (usuario == null) {
-            throw new RecursoNaoEncontradoException(
-                    "Usuário não encontrado com a matrícula: " + matricula);
-        }
-
-        return paraUsuarioView(usuario);
-
-    }
-
-    @Override
-    public List<UsuarioView> listarUsuarios() {
-
-        List<UsuarioView> resultado = new ArrayList<>();
-
-        for (Usuario usuario : usuarios.values()) {
-            resultado.add(paraUsuarioView(usuario));
-        }
-
-        resultado.sort(Comparator.comparing(UsuarioView::nome, String.CASE_INSENSITIVE_ORDER));
-
-        return resultado;
-    }
-
-
-    private UsuarioView paraUsuarioView(Usuario usuario) {
-        return new UsuarioView(
-                usuario.getMatricula(),
-                usuario.getNome(),
-                usuario.isAtivo(),
-                usuario.getEmprestimosAtivos()
-        );
     }
 
     /**

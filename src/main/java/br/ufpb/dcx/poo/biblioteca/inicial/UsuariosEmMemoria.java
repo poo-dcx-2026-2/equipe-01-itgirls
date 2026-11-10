@@ -13,20 +13,18 @@ import br.ufpb.dcx.poo.biblioteca.contrato.excecoes.RecursoDuplicadoException;
 import br.ufpb.dcx.poo.biblioteca.contrato.excecoes.RecursoNaoEncontradoException;
 
 /**
- * Implementação inicial e parcial dos usuários.
- *
- * <p>Não existe classe de domínio para o usuário: os dados estão soltos em listas
- * paralelas. É proposital. Uma das primeiras decisões da Entrega 1 é definir se
- * isso deve continuar assim.</p>
+ * Implementação em memória do gerenciamento de usuários.
+ * Os usuários são armazenados em um Map, utilizando a matrícula como chave.
  */
 public class UsuariosEmMemoria implements UsuarioService {
-
-    //dar uma olhadinha melhor nessa parte
 
     private final Map<String, Usuario> usuarios = new HashMap<>();
 
     @Override
     public void cadastrarUsuario(String matricula, String nome) throws RecursoDuplicadoException {
+
+        exigirTextoPreenchido(matricula, "matrícula");
+        exigirTextoPreenchido(nome, "nome");
 
         if (usuarios.containsKey(matricula)) {
             throw new RecursoDuplicadoException("Já existe usuário com a matrícula " + matricula);
@@ -38,16 +36,24 @@ public class UsuariosEmMemoria implements UsuarioService {
 
     @Override
     public UsuarioView buscarUsuario(String matricula) throws RecursoNaoEncontradoException {
-        //buscar pela chave, inves de peo
+
+        exigirTextoPreenchido(matricula, "matrícula");
+
+        //busca o usuário diretamente pela matrícula (chave do Map).
         Usuario usuario = usuarios.get(matricula);
         if (usuario == null) {
             throw new RecursoNaoEncontradoException("Usuário não encontrado: " + matricula);
         }
-        return paraView(usuario);
+        return visaoDe(usuario);
     }
 
-    private UsuarioView paraView(Usuario usuario) {
-        return new UsuarioView(usuario.getMatricula(), usuario.getNome(), true, 0);
+    private UsuarioView visaoDe(Usuario usuario) {
+        return new UsuarioView(
+                usuario.getMatricula(),
+                usuario.getNome(),
+                usuario.isAtivo(),
+                usuario.getEmprestimosAtivos()
+        );
     }
 
     @Override
@@ -55,7 +61,7 @@ public class UsuariosEmMemoria implements UsuarioService {
         List<UsuarioView> resultado = new ArrayList<>();
         // Percorre os valores armazenados no Map
         for (Usuario u : usuarios.values()) {
-            resultado.add(paraView(u));
+            resultado.add(visaoDe(u));
         }
         resultado.sort((a, b) -> a.nome().compareToIgnoreCase(b.nome()));
         return resultado;
@@ -70,5 +76,14 @@ public class UsuariosEmMemoria implements UsuarioService {
     @Override
     public void reativarUsuario(String matricula) throws RecursoNaoEncontradoException {
         throw new UnsupportedOperationException("Entrega 2: implementar reativarUsuario");
+    }
+
+    private void exigirTextoPreenchido(String valor, String campo) {
+
+        if (valor == null || valor.isBlank()) {
+            throw new DadosInvalidosException(
+                    "O campo " + campo + " é obrigatório."
+            );
+        }
     }
 }
