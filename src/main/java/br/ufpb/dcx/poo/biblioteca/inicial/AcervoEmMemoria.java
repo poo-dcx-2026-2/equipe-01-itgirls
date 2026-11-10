@@ -12,17 +12,8 @@ import br.ufpb.dcx.poo.biblioteca.contrato.excecoes.RecursoNaoEncontradoExceptio
 //dar uma olhada nesse map e nesses metodos
 
 public class AcervoEmMemoria implements AcervoService {
-    private final UsuarioService usuarios;
     private final Map<String, Item> itens = new HashMap<>();
     private final Map<String, Exemplar> tombosGlobais = new HashMap<>();
-
-    public AcervoEmMemoria() {
-        this(new UsuariosEmMemoria());
-    }
-
-    public AcervoEmMemoria(UsuarioService usuarios) {
-        this.usuarios = Objects.requireNonNull(usuarios);
-    }
 
     @Override
     public void cadastrarItem(String codigo, String titulo, String autoria,
@@ -243,33 +234,6 @@ public class AcervoEmMemoria implements AcervoService {
 
         // Remove o exemplar do mapa global de tombos.
         tombosGlobais.remove(tombo);
-    }
-
-    @Override
-    public void cadastrarUsuario(String matricula, String nome)
-            throws DadosInvalidosException, RecursoDuplicadoException {
-
-        usuarios.cadastrarUsuario(matricula, nome);
-    }
-
-    @Override
-    public UsuarioView buscarUsuario(String matricula)
-            throws DadosInvalidosException, RecursoNaoEncontradoException {
-
-        return usuarios.buscarUsuario(matricula);
-    }
-
-    @Override
-    public List<UsuarioView> listarUsuarios() {
-        return usuarios.listarUsuarios();
-    }
-    private UsuarioView paraUsuarioView(Usuario usuario) {
-        return new UsuarioView(
-                usuario.getMatricula(),
-                usuario.getNome(),
-                usuario.isAtivo(),
-                usuario.getEmprestimosAtivos()
-        );
     }
 
     /**

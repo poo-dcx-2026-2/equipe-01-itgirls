@@ -16,7 +16,7 @@ import br.ufpb.dcx.poo.biblioteca.contrato.excecoes.PersistenciaException;
 public class BibliotecaInicial implements Biblioteca {
 
     private final UsuariosEmMemoria usuarios = new UsuariosEmMemoria();
-    private final AcervoEmMemoria acervo = new AcervoEmMemoria(usuarios);
+    private final AcervoEmMemoria acervo = new AcervoEmMemoria();
     private final EmprestimosNaoImplementados emprestimos = new EmprestimosNaoImplementados();
     private final RelatoriosNaoImplementados relatorios = new RelatoriosNaoImplementados();
 
