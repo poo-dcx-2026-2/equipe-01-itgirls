@@ -22,7 +22,7 @@ class AcervoEmMemoria {
 AcervoEmMemoria ..|> AcervoService
 
 
-interface Usuarios {
+interface UsuarioService {
     +cadastrarUsuario(matricula: String, nome: String): void
     +buscarUsuario(matricula: String): UsuarioView
     +listarUsuarios(): List<UsuarioView>
@@ -34,7 +34,7 @@ class UsuariosEmMemoria {
     -usuarios: Map<String, Usuario>
 }
 
-UsuariosEmMemoria ..|> Usuarios
+UsuariosEmMemoria ..|> UsuarioService
 
 
 class Item {

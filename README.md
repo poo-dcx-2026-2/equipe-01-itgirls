@@ -17,7 +17,7 @@ Equipe 01 - itgirls
 
 ## Mapa do Projeto
 
-\\\	ext
+```
 equipe-01-itgirls/
 ├── docs/
 │   ├── modelo.puml                      # Diagrama de classes no formato PlantUML
@@ -35,7 +35,7 @@ equipe-01-itgirls/
 │       ├── BuscarPorCodigoTeste.java     # Teste de regressao para o defeito do == / equals
 │       └── NovosTestesAcervoTest.java    # Suite cobrindo entradas invalidas, duplicidades, ordenacao e bordas
 └── pom.xml                              # Dependencias do projeto (Maven)
-\\\
+```
 
 ---
 
@@ -48,10 +48,11 @@ equipe-01-itgirls/
 ### Linha de Comando (Terminal)
 No diretorio raiz do projeto, execute:
 
-\\\ash
+```Bash
 # Executar todos os testes da suite
 mvn test
-\\\
+```
+
 
 Status da Suite: Todos os testes legados da Entrega 1 foram reabilitados (remocao do @Disabled) e estao passando 100% junto com as novas suites de testes automatizados.
 
@@ -91,3 +92,10 @@ A escolha das colecoes na classe AcervoEmMemoria considerou a eficiencia das ope
 
 1. **Pacote Contrato**: Mantido congelado conforme diretrizes da disciplina.
 2. **Fabrica.novaBiblioteca()**: Mantido para prover instancias limpas do sistema para a execucao das suites de teste.
+
+## Relato do defeito
+
+| Sintoma | Como reproduzir | Causa                                | Teste/Proteção          |
+|---------|----------|--------------------------------------|--------------------------------------|
+| Quebra de compilação ao restaurar o pacote contrato oficial.   | Sobrescrever a interface `AcervoService` pelo contrato original e executar `mvn test`.  | Métodos de usuários dentro de AcervoEmMemoria que não pertenciam ao contrato oficial. | Separação para UsuariosEmMemoria, remoção dos métodos extras e validação via NovosTestesAcervoTest                           |
+
