@@ -2,6 +2,9 @@ package br.ufpb.dcx.poo.biblioteca.inicial;
 
 import br.ufpb.dcx.poo.biblioteca.contrato.excecoes.DadosInvalidosException;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Usuario {
 
     // A matrícula e o nome não podem ser alterados depois que o usuário é criado.
@@ -12,7 +15,7 @@ public class Usuario {
     private boolean ativo;
 
     // Guarda a quantidade de empréstimos que o usuário possui atualmente
-    private int emprestimosAtivos;
+    private final List<Emprestimo> emprestimos = new ArrayList<>();
 
 
     public Usuario(String matricula, String nome) {
@@ -36,8 +39,6 @@ public class Usuario {
         // Todo usuário começa ativo ao ser cadastrado.
         this.ativo = true;
 
-        // Todo usuário começa sem empréstimos ativos.
-        this.emprestimosAtivos = 0;
     }
 
     // Retorna a matrícula do usuário.
@@ -55,23 +56,19 @@ public class Usuario {
         return ativo;
     }
 
-    // Retorna a quantidade de empréstimos ativos do usuário.
+    public void setAtivo(boolean ativo) {
+        this.ativo = ativo;
+    }
+
+    // Padrão Especialista (Passo 7): calcula os ativos em tempo real
     public int getEmprestimosAtivos() {
-        return emprestimosAtivos;
-    }
-
-    // Adiciona um empréstimo à quantidade de empréstimos ativos.
-    public void incrementEmprestimosAtivos() {
-        this.emprestimosAtivos++;
-    }
-
-    // Diminui a quantidade de empréstimos ativos.
-    public void decrementEmprestimosAtivos() {
-
-        // Só diminui se houver pelo menos um empréstimo ativo.
-        // Isso evita que a quantidade fique negativa.
-        if (this.emprestimosAtivos > 0) {
-            this.emprestimosAtivos--;
+        int contador = 0;
+        for (Emprestimo e : emprestimos) {
+            if (e.estaAtivo()) {
+                contador++;
+            }
         }
+        return contador;
     }
+
 }
