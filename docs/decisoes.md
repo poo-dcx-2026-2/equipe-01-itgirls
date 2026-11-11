@@ -21,4 +21,28 @@
 
 **Consequência:** Encapsulamento da contagem dentro da própria entidade `Usuario`, eliminando o risco de inconsistência no contador.
 
+## Verificação de empréstimo atrasado: Especialista da Informação no Emprestimo
+
+**Contexto:** O sistema precisa verificar se um determinado empréstimo está com a devolução atrasada.
+
+**Decisão:** A classe `Emprestimo` implementa o método `estaAtrasado(LocalDate dataAtual)`, aplicando o padrão **Especialista da Informação**, pois ela é quem detém a data limite de devolução.
+
+**Alternativa rejeitada:** Fazer o serviço consultar as datas por fora e realizar a comparação externamente.
+
+**Consequência;** Encapsulamento da regra de negócio na própria entidade `Emprestimo`.
+
+---
+
+## Contagem de exemplares disponíveis: Especialista da Informação no Item
+
+**Contexto:** O sistema precisa saber a quantidade de exemplares disponíveis de um item.
+
+**Decisão:** A classe `Item` implementa o método `exemplaresDisponiveis()`, aplicando o padrão **Especialista da Informação**, pois ela detém a lista interna de exemplares.
+
+**Alternativa rejeitada:** Percorrer a lista de exemplares fora da entidade dentro do serviço de acervo.
+
+**Consequência:** Manutenção do modelo rico e encapsulamento da contagem.
+
+
+
 
