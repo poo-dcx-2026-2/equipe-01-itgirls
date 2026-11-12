@@ -8,11 +8,13 @@ import br.ufpb.dcx.poo.biblioteca.contrato.StatusExemplar;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.ArrayList;
 
 public class EmprestimosEmMemoria implements EmprestimoService {
 
     private final AcervoEmMemoria acervo;
     private final UsuariosEmMemoria usuarios;
+    private final List<Emprestimo> emprestimos = new ArrayList<>();
     private int proximoId = 1;
 
     public EmprestimosEmMemoria(AcervoEmMemoria acervo,
@@ -80,6 +82,10 @@ public class EmprestimosEmMemoria implements EmprestimoService {
 
         // Registra o empréstimo na lista do usuário.
         usuario.adicionarEmprestimo(emprestimo);
+
+        // Registra o empréstimo na lista geral do serviço.
+        emprestimos.add(emprestimo);
+
         exemplar.setStatus(StatusExemplar.EMPRESTADO);
         
         return emprestimo.getId();
@@ -87,7 +93,29 @@ public class EmprestimosEmMemoria implements EmprestimoService {
 
     @Override
     public void devolver(String tombo, LocalDate data) throws RecursoNaoEncontradoException, OperacaoNaoPermitidaException {
+        Emprestimo emprestimoEncontrado = null;
 
+        for (Emprestimo emprestimo : emprestimos) {
+
+            if (emprestimo.getExemplar().getTombo().equals(tombo)
+                    && emprestimo.estaAtivo()) {
+
+                emprestimoEncontrado = emprestimo;
+                break;
+            }
+        }
+        if (emprestimoEncontrado == null) {
+            throw new OperacaoNaoPermitidaException(
+                    "Não existe empréstimo ativo para este exemplar."
+            );
+        }
+
+        // Registra a data da devolução.
+        emprestimoEncontrado.registrarDevolucao(data);
+
+       // Atualiza o status do exemplar.
+        emprestimoEncontrado.getExemplar()
+                .setStatus(StatusExemplar.DISPONIVEL);
     }
 
     @Override
