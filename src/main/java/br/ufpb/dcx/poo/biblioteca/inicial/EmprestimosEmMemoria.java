@@ -11,12 +11,15 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Map;
+import java.util.HashMap;
 
 public class EmprestimosEmMemoria implements EmprestimoService {
 
     private final AcervoEmMemoria acervo;
     private final UsuariosEmMemoria usuarios;
     private final List<Emprestimo> emprestimos = new ArrayList<>();
+    private final Map<String, FilaDeReservas> filasPorItem = new HashMap<>();
     private int proximoId = 1;
 
     public EmprestimosEmMemoria(AcervoEmMemoria acervo,
@@ -27,6 +30,13 @@ public class EmprestimosEmMemoria implements EmprestimoService {
 
     private String novoId() {
         return String.valueOf(proximoId++);
+    }
+
+    private FilaDeReservas obterFila(String codigoDoItem) {
+        return filasPorItem.computeIfAbsent(
+                codigoDoItem,
+                codigo -> new FilaDeReservas()
+        );
     }
 
     @Override
@@ -65,7 +75,23 @@ public class EmprestimosEmMemoria implements EmprestimoService {
             );
         }
 
-        if (!exemplar.podeSerEmprestadoPara(usuario)) {
+        FilaDeReservas fila = filasPorItem.get(
+                exemplar.getCodigoDoItem()
+        );
+
+        Reserva reservaDoUsuario = null;
+
+        if (fila != null) {
+            reservaDoUsuario =
+                    fila.buscarReservaDoUsuarioComExemplar(matricula, exemplar);
+        }
+
+        boolean reservadoParaEsteUsuario =
+                reservaDoUsuario != null
+                        && exemplar.getStatus() == StatusExemplar.RESERVADO;
+
+        if (exemplar.getStatus() != StatusExemplar.DISPONIVEL
+                && !reservadoParaEsteUsuario) {
             throw new ExemplarIndisponivelException(
                     "O exemplar não está disponível para empréstimo."
             );
@@ -89,6 +115,10 @@ public class EmprestimosEmMemoria implements EmprestimoService {
         emprestimos.add(emprestimo);
 
         exemplar.setStatus(StatusExemplar.EMPRESTADO);
+
+        if (reservaDoUsuario != null) {
+            fila.remover(reservaDoUsuario.getId());
+        }
         
         return emprestimo.getId();
     }
@@ -116,8 +146,17 @@ public class EmprestimosEmMemoria implements EmprestimoService {
         emprestimoEncontrado.registrarDevolucao(data);
 
        // Atualiza o status do exemplar.
-        emprestimoEncontrado.getExemplar()
-                .setStatus(StatusExemplar.DISPONIVEL);
+        Exemplar exemplar = emprestimoEncontrado.getExemplar();
+
+        FilaDeReservas fila = filasPorItem.get(
+                exemplar.getCodigoDoItem()
+        );
+
+        if (fila != null && fila.proxima() != null) {
+            fila.proxima().atribuirExemplar(exemplar);
+        } else {
+            exemplar.setStatus(StatusExemplar.DISPONIVEL);
+        }
     }
 
     @Override
@@ -194,16 +233,132 @@ public class EmprestimosEmMemoria implements EmprestimoService {
 
     @Override
     public String reservar(String codigoDoItem, String matricula, LocalDate data) throws RecursoNaoEncontradoException, OperacaoNaoPermitidaException {
-        return "";
+        if (codigoDoItem == null || codigoDoItem.isBlank()) {
+            throw new DadosInvalidosException("O código do item é obrigatório.");
+        }
+
+        if (matricula == null || matricula.isBlank()) {
+            throw new DadosInvalidosException("A matrícula é obrigatória.");
+        }
+
+        if (data == null) {
+            throw new DadosInvalidosException("A data da reserva é obrigatória.");
+        }
+
+        Item item = acervo.buscarItemInterno(codigoDoItem);
+
+        Usuario usuario = usuarios.buscarUsuarioPorMatricula(matricula);
+
+        if (usuario == null) {
+            throw new RecursoNaoEncontradoException(
+                    "Usuário não encontrado: " + matricula
+            );
+        }
+
+        if (!usuario.isAtivo()) {
+            throw new OperacaoNaoPermitidaException(
+                    "O usuário está inativo."
+            );
+        }
+
+        if (item.exemplaresDisponiveis() > 0) {
+            throw new OperacaoNaoPermitidaException(
+                    "Existem exemplares disponíveis para empréstimo."
+            );
+        }
+
+        FilaDeReservas fila = obterFila(codigoDoItem);
+
+        if (fila.possuiReservaDoUsuario(matricula)) {
+            throw new OperacaoNaoPermitidaException(
+                    "O usuário já possui uma reserva para este item."
+            );
+        }
+
+        Reserva reserva = new Reserva(
+                novoId(),
+                codigoDoItem,
+                usuario,
+                data
+        );
+
+        fila.entrar(reserva);
+
+        return reserva.getId();
     }
 
     @Override
     public List<ReservaView> listarReservas(String codigoDoItem) throws RecursoNaoEncontradoException {
-        return List.of();
+        if (codigoDoItem == null || codigoDoItem.isBlank()) {
+            throw new DadosInvalidosException(
+                    "O código do item é obrigatório."
+            );
+        }
+
+        acervo.buscarItemInterno(codigoDoItem);
+
+        FilaDeReservas fila = filasPorItem.get(codigoDoItem);
+
+        if (fila == null) {
+            return List.of();
+        }
+
+        List<ReservaView> resultado = new ArrayList<>();
+
+        int posicao = 1;
+
+        for (Reserva reserva : fila.getReservas()) {
+            resultado.add(new ReservaView(
+                    reserva.getId(),
+                    reserva.getCodigoDoItem(),
+                    reserva.getUsuario().getMatricula(),
+                    reserva.getDataDaReserva(),
+                    posicao
+            ));
+
+            posicao++;
+        }
+
+        return resultado;
     }
 
     @Override
     public void cancelarReserva(String idDaReserva) throws RecursoNaoEncontradoException {
+        if (idDaReserva == null || idDaReserva.isBlank()) {
+            throw new DadosInvalidosException(
+                    "O ID da reserva é obrigatório."
+            );
+        }
 
+        Reserva reservaCancelada = null;
+        FilaDeReservas filaDaReserva = null;
+
+        for (FilaDeReservas fila : filasPorItem.values()) {
+            Reserva encontrada = fila.remover(idDaReserva);
+
+            if (encontrada != null) {
+                reservaCancelada = encontrada;
+                filaDaReserva = fila;
+                break;
+            }
+        }
+
+        if (reservaCancelada == null) {
+            throw new RecursoNaoEncontradoException(
+                    "Reserva não encontrada: " + idDaReserva
+            );
+        }
+
+        Exemplar exemplar = reservaCancelada.getExemplarSeparado();
+
+        if (exemplar != null) {
+            reservaCancelada.liberarExemplar();
+
+            Reserva proximaReserva = filaDaReserva.proxima();
+
+            if (proximaReserva != null) {
+                proximaReserva.atribuirExemplar(exemplar);
+            }
+        }
     }
 }
