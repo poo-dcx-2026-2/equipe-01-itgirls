@@ -158,11 +158,13 @@ public class AcervoEmMemoria implements AcervoService {
         tombosGlobais.put(tombo, exemplar);
     }
 
-
     private boolean tomboEmUso(String tombo) {
         return tombosGlobais.containsKey(tombo);
     }
 
+    Exemplar buscarExemplarPorTombo(String tombo) {
+        return tombosGlobais.get(tombo);
+    }
 
     @Override
     public List<ExemplarView> listarExemplares(String codigoDoItem)

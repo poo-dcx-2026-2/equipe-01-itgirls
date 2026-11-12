@@ -98,8 +98,4 @@ public class Item {
         return Collections.unmodifiableList(exemplares);
     }
 
-
-
-    //nao pode ter set e deve ter metodos proprios, os que tão lá no diagrama
-    //nada de getExemplares
 }

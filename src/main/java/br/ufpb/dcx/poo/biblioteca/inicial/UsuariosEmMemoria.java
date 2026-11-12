@@ -47,6 +47,10 @@ public class UsuariosEmMemoria implements UsuarioService {
         return visaoDe(usuario);
     }
 
+    Usuario buscarUsuarioPorMatricula(String matricula) {
+        return usuarios.get(matricula);
+    }
+
     private UsuarioView visaoDe(Usuario usuario) {
         return new UsuarioView(
                 usuario.getMatricula(),
