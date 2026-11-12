@@ -71,4 +71,7 @@ public class Usuario {
         return contador;
     }
 
+    public void adicionarEmprestimo(Emprestimo emprestimo) {
+        emprestimos.add(emprestimo);
+    }
 }

@@ -17,7 +17,7 @@ public class BibliotecaInicial implements Biblioteca {
 
     private final UsuariosEmMemoria usuarios = new UsuariosEmMemoria();
     private final AcervoEmMemoria acervo = new AcervoEmMemoria();
-    private final EmprestimosNaoImplementados emprestimos = new EmprestimosNaoImplementados();
+    private final EmprestimosEmMemoria emprestimos = new EmprestimosEmMemoria(acervo, usuarios);
     private final RelatoriosNaoImplementados relatorios = new RelatoriosNaoImplementados();
 
     @Override
