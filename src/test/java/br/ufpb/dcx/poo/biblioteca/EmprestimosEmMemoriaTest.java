@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -12,6 +13,7 @@ import org.junit.jupiter.api.Test;
 
 import br.ufpb.dcx.poo.biblioteca.contrato.Biblioteca;
 import br.ufpb.dcx.poo.biblioteca.contrato.StatusExemplar;
+import br.ufpb.dcx.poo.biblioteca.contrato.EmprestimoView;
 import br.ufpb.dcx.poo.biblioteca.contrato.excecoes.DadosInvalidosException;
 import br.ufpb.dcx.poo.biblioteca.contrato.excecoes.RecursoNaoEncontradoException;
 import br.ufpb.dcx.poo.biblioteca.contrato.excecoes.ExemplarIndisponivelException;
@@ -22,6 +24,8 @@ import br.ufpb.dcx.poo.biblioteca.contrato.excecoes.UsuarioInativoException;
 class EmprestimosEmMemoriaTest {
 
     private Biblioteca biblioteca;
+    private static final LocalDate SEGUNDA =
+            LocalDate.of(2026, 11, 2);
 
     @BeforeEach
     void criarBibliotecaComDados() throws Exception {
@@ -34,6 +38,39 @@ class EmprestimosEmMemoriaTest {
         );
 
         biblioteca.acervo().adicionarExemplar("L1", "T001");
+    }
+
+    @Test
+    void emprestimoTemPrazoDeQuatorzeDias() throws Exception {
+
+        biblioteca.emprestimos().emprestar(
+                "T001", "2026001", SEGUNDA
+        );
+
+        EmprestimoView emprestimo = biblioteca.emprestimos()
+                .listarEmprestimosDoUsuario("2026001").get(0);
+
+        assertEquals(
+                LocalDate.of(2026, 11, 16),
+                emprestimo.dataPrevistaDeDevolucao()
+        );
+    }
+
+    @Test
+    void noDiaPrevistoAindaNaoHaAtraso() throws Exception {
+
+        biblioteca.emprestimos().emprestar(
+                "T001", "2026001", SEGUNDA
+        );
+
+        List<EmprestimoView> noDia = biblioteca.emprestimos()
+                .listarAtrasados(LocalDate.of(2026, 11, 16));
+
+        List<EmprestimoView> noDiaSeguinte = biblioteca.emprestimos()
+                .listarAtrasados(LocalDate.of(2026, 11, 17));
+
+        assertEquals(0, noDia.size());
+        assertEquals(1, noDiaSeguinte.size());
     }
 
     @Test

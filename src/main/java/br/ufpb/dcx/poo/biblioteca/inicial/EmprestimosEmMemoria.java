@@ -5,10 +5,12 @@ import br.ufpb.dcx.poo.biblioteca.contrato.EmprestimoView;
 import br.ufpb.dcx.poo.biblioteca.contrato.ReservaView;
 import br.ufpb.dcx.poo.biblioteca.contrato.excecoes.*;
 import br.ufpb.dcx.poo.biblioteca.contrato.StatusExemplar;
+import br.ufpb.dcx.poo.biblioteca.contrato.StatusEmprestimo;
 
 import java.time.LocalDate;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Comparator;
 
 public class EmprestimosEmMemoria implements EmprestimoService {
 
@@ -120,12 +122,74 @@ public class EmprestimosEmMemoria implements EmprestimoService {
 
     @Override
     public List<EmprestimoView> listarEmprestimosDoUsuario(String matricula) throws RecursoNaoEncontradoException {
-        return List.of();
+        Usuario usuario = usuarios.buscarUsuarioPorMatricula(matricula);
+
+        if (usuario == null) {
+            throw new RecursoNaoEncontradoException(
+                    "Usuário não encontrado: " + matricula
+            );
+        }
+
+        List<Emprestimo> emprestimosDoUsuario = new ArrayList<>();
+
+        for (Emprestimo emprestimo : emprestimos) {
+            if (emprestimo.getUsuario().getMatricula().equals(matricula)) {
+                emprestimosDoUsuario.add(emprestimo);
+            }
+        }
+
+        emprestimosDoUsuario.sort(
+                Comparator.comparing(Emprestimo::getDataDoEmprestimo).reversed()
+        );
+
+        List<EmprestimoView> resultado = new ArrayList<>();
+
+        for (Emprestimo emprestimo : emprestimosDoUsuario) {
+
+            StatusEmprestimo status;
+
+            if (emprestimo.estaAtivo()) {
+                status = StatusEmprestimo.ATIVO;
+            } else {
+                status = StatusEmprestimo.DEVOLVIDO;
+            }
+
+            resultado.add(new EmprestimoView(
+                    emprestimo.getId(),
+                    emprestimo.getExemplar().getTombo(),
+                    emprestimo.getUsuario().getMatricula(),
+                    emprestimo.getDataDoEmprestimo(),
+                    emprestimo.getDataPrevistaDeDevolucao(),
+                    emprestimo.getDataDaDevolucao(),
+                    status
+            ));
+        }
+
+        return resultado;
     }
 
     @Override
     public List<EmprestimoView> listarAtrasados(LocalDate data) {
-        return List.of();
+        List<EmprestimoView> resultado = new ArrayList<>();
+
+        for (Emprestimo emprestimo : emprestimos) {
+
+            if (emprestimo.estaAtivo()
+                    && emprestimo.getDataPrevistaDeDevolucao().isBefore(data)) {
+
+                resultado.add(new EmprestimoView(
+                        emprestimo.getId(),
+                        emprestimo.getExemplar().getTombo(),
+                        emprestimo.getUsuario().getMatricula(),
+                        emprestimo.getDataDoEmprestimo(),
+                        emprestimo.getDataPrevistaDeDevolucao(),
+                        emprestimo.getDataDaDevolucao(),
+                        StatusEmprestimo.ATRASADO
+                ));
+            }
+        }
+
+        return resultado;
     }
 
     @Override
