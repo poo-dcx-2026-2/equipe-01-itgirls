@@ -16,6 +16,7 @@ import br.ufpb.dcx.poo.biblioteca.contrato.excecoes.DadosInvalidosException;
 import br.ufpb.dcx.poo.biblioteca.contrato.excecoes.RecursoNaoEncontradoException;
 import br.ufpb.dcx.poo.biblioteca.contrato.excecoes.ExemplarIndisponivelException;
 import br.ufpb.dcx.poo.biblioteca.contrato.excecoes.LimiteDeEmprestimosExcedidoException;
+import br.ufpb.dcx.poo.biblioteca.contrato.excecoes.OperacaoNaoPermitidaException;
 import br.ufpb.dcx.poo.biblioteca.contrato.excecoes.UsuarioInativoException;
 
 class EmprestimosEmMemoriaTest {
@@ -176,6 +177,70 @@ class EmprestimosEmMemoriaTest {
 
         // O usuário continua com exatamente três empréstimos ativos.
         assertEquals(3,
+                biblioteca.usuarios().buscarUsuario("2026001").emprestimosAtivos());
+    }
+
+    @Test
+    @DisplayName("devolver empréstimo ativo atualiza o status do exemplar")
+    void devolverEmprestimoAtivo() throws Exception {
+
+        // O usuário realiza o empréstimo.
+        biblioteca.emprestimos().emprestar(
+                "T001", "2026001", LocalDate.of(2026, 11, 11)
+        );
+
+        // O usuário devolve o exemplar.
+        biblioteca.emprestimos().devolver(
+                "T001", LocalDate.of(2026, 11, 12)
+        );
+
+        // O exemplar volta a ficar disponível.
+        assertEquals(StatusExemplar.DISPONIVEL,
+                biblioteca.acervo().listarExemplares("L1").get(0).status());
+
+        // O usuário não possui mais empréstimos ativos.
+        assertEquals(0,
+                biblioteca.usuarios().buscarUsuario("2026001").emprestimosAtivos());
+    }
+    @Test
+    @DisplayName("devolver exemplar sem empréstimo ativo lança OperacaoNaoPermitidaException")
+    void devolverSemEmprestimoAtivo() throws Exception {
+
+        assertThrows(OperacaoNaoPermitidaException.class,
+                () -> biblioteca.emprestimos().devolver(
+                        "T001", LocalDate.of(2026, 11, 12)
+                ));
+
+        // O exemplar continua disponível.
+        assertEquals(StatusExemplar.DISPONIVEL,
+                biblioteca.acervo().listarExemplares("L1").get(0).status());
+
+        // O usuário continua sem empréstimos ativos.
+        assertEquals(0,
+                biblioteca.usuarios().buscarUsuario("2026001").emprestimosAtivos());
+    }
+
+    @Test
+    @DisplayName("data anterior ao empréstimo lança DadosInvalidosException")
+    void dataDeDevolucaoInvalida() throws Exception {
+
+        // O usuário realiza o empréstimo.
+        biblioteca.emprestimos().emprestar(
+                "T001", "2026001", LocalDate.of(2026, 11, 11)
+        );
+
+        // Tenta devolver antes da data do empréstimo.
+        assertThrows(DadosInvalidosException.class,
+                () -> biblioteca.emprestimos().devolver(
+                        "T001", LocalDate.of(2026, 11, 10)
+                ));
+
+        // O exemplar continua emprestado.
+        assertEquals(StatusExemplar.EMPRESTADO,
+                biblioteca.acervo().listarExemplares("L1").get(0).status());
+
+        // O empréstimo continua ativo.
+        assertEquals(1,
                 biblioteca.usuarios().buscarUsuario("2026001").emprestimosAtivos());
     }
 }
