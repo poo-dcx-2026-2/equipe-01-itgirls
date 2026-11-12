@@ -55,6 +55,11 @@ public class AcervoEmMemoria implements AcervoService {
         return item;
     }
 
+    Item buscarItemInterno(String codigo)
+            throws RecursoNaoEncontradoException {
+        return itemExistente(codigo);
+    }
+
     @Override
     public List<ItemView> listarItens() {
 

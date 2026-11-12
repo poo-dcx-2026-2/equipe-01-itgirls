@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Test;
 import br.ufpb.dcx.poo.biblioteca.contrato.Biblioteca;
 import br.ufpb.dcx.poo.biblioteca.contrato.StatusExemplar;
 import br.ufpb.dcx.poo.biblioteca.contrato.EmprestimoView;
+import br.ufpb.dcx.poo.biblioteca.contrato.ReservaView;
 import br.ufpb.dcx.poo.biblioteca.contrato.excecoes.DadosInvalidosException;
 import br.ufpb.dcx.poo.biblioteca.contrato.excecoes.RecursoNaoEncontradoException;
 import br.ufpb.dcx.poo.biblioteca.contrato.excecoes.ExemplarIndisponivelException;
@@ -279,5 +280,209 @@ class EmprestimosEmMemoriaTest {
         // O empréstimo continua ativo.
         assertEquals(1,
                 biblioteca.usuarios().buscarUsuario("2026001").emprestimosAtivos());
+    }
+
+    @Test
+    @DisplayName("reservar item sem exemplares disponíveis")
+    void reservarItemSemExemplarDisponivel() throws Exception {
+
+        // Cadastra um segundo usuário.
+        biblioteca.usuarios().cadastrarUsuario("2026002", "João Silva");
+
+        // Ana realiza o empréstimo do único exemplar.
+        biblioteca.emprestimos().emprestar(
+                "T001", "2026001", SEGUNDA
+        );
+
+        // João reserva o item, pois não há exemplares disponíveis.
+        String idReserva = biblioteca.emprestimos().reservar(
+                "L1", "2026002", SEGUNDA
+        );
+
+        // Consulta a fila de reservas.
+        List<ReservaView> reservas = biblioteca.emprestimos()
+                .listarReservas("L1");
+
+        assertEquals(1, reservas.size());
+        assertEquals(idReserva, reservas.get(0).id());
+        assertEquals("2026002", reservas.get(0).matricula());
+        assertEquals(1, reservas.get(0).posicaoNaFila());
+
+        // O exemplar continua emprestado para Ana.
+        assertEquals(StatusExemplar.EMPRESTADO,
+                biblioteca.acervo().listarExemplares("L1").get(0).status());
+    }
+
+    @Test
+    @DisplayName("reservas respeitam a ordem de chegada")
+    void reservasRespeitamOrdemDeChegada() throws Exception {
+
+        biblioteca.usuarios().cadastrarUsuario("2026002", "João Silva");
+        biblioteca.usuarios().cadastrarUsuario("2026003", "Carla Souza");
+
+        // Ana pega o único exemplar.
+        biblioteca.emprestimos().emprestar(
+                "T001", "2026001", SEGUNDA
+        );
+
+        // João entra primeiro na fila.
+        String reservaJoao = biblioteca.emprestimos().reservar(
+                "L1", "2026002", SEGUNDA
+        );
+
+        // Carla entra depois.
+        String reservaCarla = biblioteca.emprestimos().reservar(
+                "L1", "2026003", SEGUNDA
+        );
+
+        List<ReservaView> reservas = biblioteca.emprestimos()
+                .listarReservas("L1");
+
+        assertEquals(2, reservas.size());
+
+        assertEquals(reservaJoao, reservas.get(0).id());
+        assertEquals("2026002", reservas.get(0).matricula());
+        assertEquals(1, reservas.get(0).posicaoNaFila());
+
+        assertEquals(reservaCarla, reservas.get(1).id());
+        assertEquals("2026003", reservas.get(1).matricula());
+        assertEquals(2, reservas.get(1).posicaoNaFila());
+    }
+
+    @Test
+    @DisplayName("cancelar reserva com exemplar separado transfere exemplar para próxima reserva")
+    void cancelarReservaComExemplarSeparado() throws Exception {
+
+        // Cadastra João e Carla.
+        biblioteca.usuarios().cadastrarUsuario("2026002", "João Silva");
+        biblioteca.usuarios().cadastrarUsuario("2026003", "Carla Souza");
+
+        // Ana pega o único exemplar.
+        biblioteca.emprestimos().emprestar(
+                "T001", "2026001", SEGUNDA
+        );
+
+        // João e Carla entram na fila, nessa ordem.
+        String reservaJoao = biblioteca.emprestimos().reservar(
+                "L1", "2026002", SEGUNDA
+        );
+
+        biblioteca.emprestimos().reservar(
+                "L1", "2026003", SEGUNDA
+        );
+
+        // Ana devolve o exemplar. João recebe a reserva.
+        biblioteca.emprestimos().devolver(
+                "T001", SEGUNDA.plusDays(1)
+        );
+
+        // João cancela sua reserva.
+        biblioteca.emprestimos().cancelarReserva(reservaJoao);
+
+        // Carla deve ser a única pessoa na fila.
+        assertEquals(
+                1,
+                biblioteca.emprestimos().listarReservas("L1").size()
+        );
+
+        assertEquals(
+                "2026003",
+                biblioteca.emprestimos().listarReservas("L1").get(0).matricula()
+        );
+
+        // O exemplar deve continuar reservado, agora para Carla.
+        assertEquals(
+                StatusExemplar.RESERVADO,
+                biblioteca.acervo().listarExemplares("L1").get(0).status()
+        );
+    }
+
+    @Test
+    @DisplayName("cancelar reserva sem exemplar separado remove apenas a reserva da fila")
+    void cancelarReservaSemExemplarSeparado() throws Exception {
+
+        // Cadastra João e Carla.
+        biblioteca.usuarios().cadastrarUsuario("2026002", "João Silva");
+        biblioteca.usuarios().cadastrarUsuario("2026003", "Carla Souza");
+
+        // Ana pega o único exemplar.
+        biblioteca.emprestimos().emprestar(
+                "T001", "2026001", SEGUNDA
+        );
+
+        // João e Carla fazem suas reservas.
+        String reservaJoao = biblioteca.emprestimos().reservar(
+                "L1", "2026002", SEGUNDA
+        );
+
+        biblioteca.emprestimos().reservar(
+                "L1", "2026003", SEGUNDA
+        );
+
+        // João cancela enquanto ainda está esperando.
+        biblioteca.emprestimos().cancelarReserva(reservaJoao);
+
+        // Deve restar apenas a reserva de Carla.
+        List<ReservaView> reservas = biblioteca.emprestimos()
+                .listarReservas("L1");
+
+        assertEquals(1, reservas.size());
+        assertEquals("2026003", reservas.get(0).matricula());
+
+        // O exemplar continua emprestado para Ana.
+        assertEquals(
+                StatusExemplar.EMPRESTADO,
+                biblioteca.acervo().listarExemplares("L1").get(0).status()
+        );
+
+        // Ana devolve o exemplar.
+        biblioteca.emprestimos().devolver(
+                "T001", SEGUNDA.plusDays(1)
+        );
+
+        // Carla deve receber o exemplar reservado.
+        assertEquals(
+                StatusExemplar.RESERVADO,
+                biblioteca.acervo().listarExemplares("L1").get(0).status()
+        );
+    }
+
+    @Test
+    @DisplayName("cancelar reserva inexistente lança RecursoNaoEncontradoException")
+    void cancelarReservaInexistente() throws Exception {
+
+        // Cadastra João.
+        biblioteca.usuarios().cadastrarUsuario(
+                "2026002", "João Silva"
+        );
+
+        // Ana pega o único exemplar.
+        biblioteca.emprestimos().emprestar(
+                "T001", "2026001", SEGUNDA
+        );
+
+        // João faz uma reserva.
+        biblioteca.emprestimos().reservar(
+                "L1", "2026002", SEGUNDA
+        );
+
+        // Tenta cancelar uma reserva que não existe.
+        assertThrows(
+                RecursoNaoEncontradoException.class,
+                () -> biblioteca.emprestimos().cancelarReserva("999")
+        );
+
+        // A reserva verdadeira deve continuar na fila.
+        List<ReservaView> reservas = biblioteca.emprestimos()
+                .listarReservas("L1");
+
+        assertEquals(1, reservas.size());
+        assertEquals("2026002", reservas.get(0).matricula());
+
+        // O exemplar continua emprestado para Ana.
+        assertEquals(
+                StatusExemplar.EMPRESTADO,
+                biblioteca.acervo().listarExemplares("L1").get(0).status()
+        );
     }
 }
