@@ -485,4 +485,89 @@ class EmprestimosEmMemoriaTest {
                 biblioteca.acervo().listarExemplares("L1").get(0).status()
         );
     }
+
+    @Test
+    @DisplayName("ciclo completo de reserva respeita a fila e libera exemplar ao cancelar")
+    void cicloCompletoDeReserva() throws Exception {
+
+        // Cadastra Bruno e Carla.
+        biblioteca.usuarios().cadastrarUsuario("2026002", "Bruno");
+        biblioteca.usuarios().cadastrarUsuario("2026003", "Carla");
+
+        // Ana pega o único exemplar.
+        biblioteca.emprestimos().emprestar("T001", "2026001", SEGUNDA);
+
+        assertEquals(
+                StatusExemplar.EMPRESTADO,
+                biblioteca.acervo().listarExemplares("L1").get(0).status()
+        );
+
+        // Bruno e Carla fazem reservas, nessa ordem.
+        String reservaBruno = biblioteca.emprestimos()
+                .reservar("L1", "2026002", SEGUNDA);
+
+        String reservaCarla = biblioteca.emprestimos()
+                .reservar("L1", "2026003", SEGUNDA);
+
+        List<ReservaView> reservas = biblioteca.emprestimos()
+                .listarReservas("L1");
+
+        assertEquals(2, reservas.size());
+        assertEquals(reservaBruno, reservas.get(0).id());
+        assertEquals(reservaCarla, reservas.get(1).id());
+
+        // Ana devolve o livro. Bruno recebe a reserva.
+        biblioteca.emprestimos().devolver("T001", SEGUNDA.plusDays(1));
+
+        assertEquals(
+                StatusExemplar.RESERVADO,
+                biblioteca.acervo().listarExemplares("L1").get(0).status()
+        );
+
+        // Carla não pode pegar o livro antes de Bruno.
+        assertThrows(
+                ExemplarIndisponivelException.class,
+                () -> biblioteca.emprestimos()
+                        .emprestar("T001", "2026003", SEGUNDA.plusDays(1))
+        );
+
+        // Bruno pega o livro.
+        biblioteca.emprestimos()
+                .emprestar("T001", "2026002", SEGUNDA.plusDays(2));
+
+        assertEquals(
+                StatusExemplar.EMPRESTADO,
+                biblioteca.acervo().listarExemplares("L1").get(0).status()
+        );
+
+        // A reserva de Bruno foi atendida. Carla continua na fila.
+        reservas = biblioteca.emprestimos().listarReservas("L1");
+
+        assertEquals(1, reservas.size());
+        assertEquals(reservaCarla, reservas.get(0).id());
+
+        // Bruno devolve o livro. Carla recebe a reserva.
+        biblioteca.emprestimos().devolver("T001", SEGUNDA.plusDays(3));
+
+        assertEquals(
+                StatusExemplar.RESERVADO,
+                biblioteca.acervo().listarExemplares("L1").get(0).status()
+        );
+
+        reservas = biblioteca.emprestimos().listarReservas("L1");
+
+        assertEquals(1, reservas.size());
+        assertEquals("2026003", reservas.get(0).matricula());
+
+        // Carla cancela sua reserva.
+        biblioteca.emprestimos().cancelarReserva(reservaCarla);
+
+        assertEquals(0, biblioteca.emprestimos().listarReservas("L1").size());
+
+        // Sem reservas pendentes, o exemplar fica disponível.
+        assertEquals(
+                StatusExemplar.DISPONIVEL,
+                biblioteca.acervo().listarExemplares("L1").get(0).status()
+        );
+    }
 }
