@@ -5,7 +5,6 @@ import br.ufpb.dcx.poo.biblioteca.contrato.ItemView;
 import br.ufpb.dcx.poo.biblioteca.contrato.excecoes.DadosInvalidosException;
 import br.ufpb.dcx.poo.biblioteca.contrato.excecoes.RecursoDuplicadoException;
 import br.ufpb.dcx.poo.biblioteca.contrato.excecoes.RecursoNaoEncontradoException;
-import br.ufpb.dcx.poo.biblioteca.inicial.AcervoEmMemoria;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -20,7 +19,7 @@ public class NovosTestesAcervoTest {
 
     @BeforeEach
     void setUp(){
-        acervo = new AcervoEmMemoria();
+            this.acervo = Fabrica.novaBiblioteca().acervo();
     }
 
     @Test
