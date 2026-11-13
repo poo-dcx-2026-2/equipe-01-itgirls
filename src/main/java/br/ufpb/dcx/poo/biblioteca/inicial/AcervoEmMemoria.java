@@ -230,17 +230,8 @@ public class AcervoEmMemoria implements AcervoService {
                     "Exemplar não está disponível para ser baixado");
         }
 
-        // Procura o item ao qual o exemplar pertence.
-        Item itemDoExemplar =
-                localizar(exemplarEncontrado.getCodigoDoItem());
-
-        // Se o item for encontrado, remove o exemplar dele.
-        if (itemDoExemplar != null) {
-            itemDoExemplar.removerExemplar(exemplarEncontrado);
-        }
-
-        // Remove o exemplar do mapa global de tombos.
-        tombosGlobais.remove(tombo);
+        // Mantém o exemplar cadastrado, mas altera seu status.
+        exemplarEncontrado.setStatus(StatusExemplar.INDISPONIVEL);
     }
 
     /**
