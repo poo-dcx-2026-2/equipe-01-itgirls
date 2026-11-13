@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.List;
+import java.time.LocalDate;
 
 import org.junit.jupiter.api.BeforeEach;
 
@@ -17,6 +18,7 @@ import br.ufpb.dcx.poo.biblioteca.contrato.excecoes.BibliotecaException;
 import br.ufpb.dcx.poo.biblioteca.contrato.excecoes.DadosInvalidosException;
 import br.ufpb.dcx.poo.biblioteca.contrato.excecoes.RecursoDuplicadoException;
 import br.ufpb.dcx.poo.biblioteca.contrato.excecoes.RecursoNaoEncontradoException;
+import br.ufpb.dcx.poo.biblioteca.contrato.excecoes.OperacaoNaoPermitidaException;
 
 /**
  * Testes públicos do acervo.
@@ -162,5 +164,82 @@ class AcervoTest {
     @DisplayName("busca sem resultado devolve lista vazia, não exceção")
     void buscarPorTituloSemResultado() {
         assertEquals(List.of(), biblioteca.acervo().buscarPorTitulo("inexistente"));
+    }
+
+    @Test
+    @DisplayName("baixar exemplar mantém o exemplar no acervo como indisponível")
+    void baixarExemplar() throws BibliotecaException {
+
+        biblioteca.acervo().cadastrarItem(
+                "L1", "Java Efetivo", "Bloch", "livro", 2019
+        );
+
+        biblioteca.acervo().adicionarExemplar("L1", "T-001");
+
+        biblioteca.acervo().baixarExemplar("T-001");
+
+        // Continua existindo no acervo.
+        assertEquals(
+                1,
+                biblioteca.acervo().listarExemplares("L1").size()
+        );
+
+        // Continua contando no total.
+        assertEquals(
+                1,
+                biblioteca.acervo().buscarItem("L1").totalDeExemplares()
+        );
+
+        // Não conta mais como disponível.
+        assertEquals(
+                0,
+                biblioteca.acervo().buscarItem("L1").exemplaresDisponiveis()
+        );
+
+        // Seu status passa a ser INDISPONIVEL.
+        assertEquals(
+                StatusExemplar.INDISPONIVEL,
+                biblioteca.acervo().listarExemplares("L1").get(0).status()
+        );
+    }
+
+    @Test
+    @DisplayName("não permite baixar um exemplar que já está indisponível")
+    void baixarExemplarJaBaixado() throws BibliotecaException {
+
+        biblioteca.acervo().cadastrarItem(
+                "L1", "Java Efetivo", "Bloch", "livro", 2019
+        );
+
+        biblioteca.acervo().adicionarExemplar("L1", "T-001");
+
+        biblioteca.acervo().baixarExemplar("T-001");
+
+        assertThrows(
+                OperacaoNaoPermitidaException.class,
+                () -> biblioteca.acervo().baixarExemplar("T-001")
+        );
+    }
+
+    @Test
+    @DisplayName("não permite baixar um exemplar emprestado")
+    void baixarExemplarEmprestado() throws BibliotecaException {
+
+        biblioteca.acervo().cadastrarItem(
+                "L1", "Java Efetivo", "Bloch", "livro", 2019
+        );
+
+        biblioteca.acervo().adicionarExemplar("L1", "T-001");
+
+        biblioteca.usuarios().cadastrarUsuario("2026001", "Ana");
+
+        biblioteca.emprestimos().emprestar(
+                "T-001", "2026001", LocalDate.of(2026, 11, 2)
+        );
+
+        assertThrows(
+                OperacaoNaoPermitidaException.class,
+                () -> biblioteca.acervo().baixarExemplar("T-001")
+        );
     }
 }
