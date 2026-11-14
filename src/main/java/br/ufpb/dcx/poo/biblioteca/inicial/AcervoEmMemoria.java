@@ -282,4 +282,16 @@ public class AcervoEmMemoria implements AcervoService {
     List<Item> itens() {
         return new ArrayList<>(itens.values());
     }
+
+    List<Exemplar> exemplares() {
+        return new ArrayList<>(tombosGlobais.values());
+    }
+
+    void substituirEstado(Map<String, Item> novosItens, Map<String, Exemplar> novosTombos) {
+        this.itens.clear();
+        this.itens.putAll(novosItens);
+        this.tombosGlobais.clear();
+        this.tombosGlobais.putAll(novosTombos);
+    }
+
 }
