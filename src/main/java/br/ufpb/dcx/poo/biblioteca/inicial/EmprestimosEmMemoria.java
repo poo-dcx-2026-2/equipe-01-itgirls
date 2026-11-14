@@ -361,4 +361,26 @@ public class EmprestimosEmMemoria implements EmprestimoService {
             }
         }
     }
+
+    List<Emprestimo> todosEmprestimos() {
+        return new ArrayList<>(emprestimos);
+    }
+
+    List<Reserva> todasReservas() {
+        List<Reserva> todas = new ArrayList<>();
+        for (FilaDeReservas fila : filasPorItem.values()) {
+            todas.addAll(fila.getReservas());
+        }
+        return todas;
+    }
+
+    void substituirEstado(List<Emprestimo> novosEmprestimos,
+                          Map<String, FilaDeReservas> novasFilas,
+                          int novoProximoId) {
+        this.emprestimos.clear();
+        this.emprestimos.addAll(novosEmprestimos);
+        this.filasPorItem.clear();
+        this.filasPorItem.putAll(novasFilas);
+        this.proximoId = novoProximoId;
+    }
 }

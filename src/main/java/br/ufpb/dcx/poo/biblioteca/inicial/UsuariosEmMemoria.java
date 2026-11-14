@@ -119,4 +119,13 @@ public class UsuariosEmMemoria implements UsuarioService {
             );
         }
     }
+
+    List<Usuario> todosUsuarios() {
+        return new ArrayList<>(usuarios.values());
+    }
+
+    void substituirEstado(Map<String, Usuario> novosUsuarios) {
+        this.usuarios.clear();
+        this.usuarios.putAll(novosUsuarios);
+    }
 }
