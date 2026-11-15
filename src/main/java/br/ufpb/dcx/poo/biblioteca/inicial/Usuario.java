@@ -4,6 +4,8 @@ import br.ufpb.dcx.poo.biblioteca.contrato.excecoes.DadosInvalidosException;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.time.LocalDate;
+import java.time.Period;
 
 public class Usuario {
 
@@ -17,30 +19,40 @@ public class Usuario {
     // Guarda a quantidade de empréstimos que o usuário possui atualmente
     private final List<Emprestimo> emprestimos = new ArrayList<>();
 
+    private final LocalDate dataNascimento;
 
     public Usuario(String matricula, String nome) {
+        this(matricula, nome, null, false);
+    }
 
-        // Verifica se a matrícula foi informada.
-        // Caso esteja nula ou vazia, lança uma exceção.
+    public Usuario(String matricula, String nome, LocalDate dataNascimento) {
+        this(matricula, nome, dataNascimento, true);
+    }
+
+    private Usuario(String matricula, String nome,
+                    LocalDate dataNascimento, boolean exigirNascimento) {
+
         if (matricula == null || matricula.isBlank()) {
             throw new DadosInvalidosException("A matrícula é obrigatória.");
         }
 
-        // Verifica se o nome foi informado.
-        // Caso esteja nulo ou vazio, lança uma exceção.
         if (nome == null || nome.isBlank()) {
             throw new DadosInvalidosException("O nome é obrigatório.");
         }
 
-        // Guarda os dados recebidos nos atributos do usuário.
+        if (exigirNascimento && dataNascimento == null) {
+            throw new DadosInvalidosException("A data de nascimento é obrigatória.");
+        }
+
+        if (dataNascimento != null && dataNascimento.isAfter(LocalDate.now())) {
+            throw new DadosInvalidosException("A data de nascimento não poderá estar no futuro.");
+        }
+
         this.matricula = matricula;
         this.nome = nome;
-
-        // Todo usuário começa ativo ao ser cadastrado.
         this.ativo = true;
-
+        this.dataNascimento = dataNascimento;
     }
-
     // Retorna a matrícula do usuário.
     public String getMatricula() {
         return matricula;
@@ -74,4 +86,18 @@ public class Usuario {
     public void adicionarEmprestimo(Emprestimo emprestimo) {
         emprestimos.add(emprestimo);
     }
+
+    public LocalDate getDataNascimento() {
+        return dataNascimento;
+    }
+
+
+    public int calcularIdade(LocalDate dataReferencia) {
+        if (dataReferencia == null || dataReferencia.isBefore(dataNascimento)) {
+            throw new DadosInvalidosException("Data de referência inválida.");
+        }
+
+        return Period.between(dataNascimento, dataReferencia).getYears();
+    }
+
 }

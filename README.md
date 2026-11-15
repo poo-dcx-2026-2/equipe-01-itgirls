@@ -81,12 +81,48 @@ A escolha das colecoes na classe AcervoEmMemoria considerou a eficiencia das ope
 
 ---
 
-## Extensao Autoral
 
-* **Acervo Escolhido**: Livros
-* **Regra de Negocio**: Restricao por classificacao indicativa - A biblioteca precisa validar a idade do usuario antes de realizar o emprestimo de livros por meio da classificacao etaria associada ao exemplar.
+## Nossa extensão — Restrição por classificação etária
 
----
+A extensão implementa uma regra de restrição de empréstimos baseada na classificação etária dos exemplares do acervo.
+
+O objetivo é impedir que usuários realizem empréstimos de livros cuja idade mínima recomendada seja superior à idade que possuem. Para isso, o sistema utiliza a data de nascimento cadastrada para calcular a idade do usuário na data do empréstimo e compará-la com a idade mínima exigida pelo exemplar.
+
+### Como utilizar
+
+1. Cadastrar o usuário informando sua data de nascimento.
+2. Definir a classificação etária do exemplar.
+3. Realizar a tentativa de empréstimo por meio do serviço `EmprestimoPorIdadeService`.
+4. O sistema verifica se o usuário possui idade suficiente. Caso não possua, o empréstimo é impedido. Caso possua, o empréstimo é realizado normalmente.
+
+### Classificações disponíveis
+
+- LIVRE — sem idade mínima.
+- IDADE_10 — a partir de 10 anos.
+- IDADE_12 — a partir de 12 anos.
+- IDADE_14 — a partir de 14 anos.
+- IDADE_16 — a partir de 16 anos.
+- IDADE_18 — a partir de 18 anos.
+
+### Localização da implementação
+
+A extensão foi implementada fora do pacote `contrato`, sem modificar o funcionamento dos métodos definidos pelas interfaces originais.
+
+Principais classes envolvidas:
+
+- `ClassificacaoEtaria.java`: define as classificações e respectivas idades mínimas.
+- `EmprestimoPorIdadeService.java`: realiza a validação da idade antes de encaminhar o empréstimo ao serviço original.
+- `Usuario.java`: armazena a data de nascimento e calcula a idade.
+- `Exemplar.java`: armazena a classificação etária do exemplar.
+
+### Testes
+
+Foram implementados testes automatizados com JUnit 5 para verificar duas situações:
+
+- Bloqueio do empréstimo quando o usuário possui idade inferior à idade mínima exigida.
+- Permissão do empréstimo quando o usuário possui idade igual ou superior à idade mínima exigida.
+
+Os testes foram executados com sucesso.
 
 ## Regras do Projeto
 

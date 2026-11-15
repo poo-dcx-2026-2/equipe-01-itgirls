@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.time.LocalDate;
 
 import br.ufpb.dcx.poo.biblioteca.contrato.UsuarioService;
 import br.ufpb.dcx.poo.biblioteca.contrato.UsuarioView;
@@ -33,6 +34,24 @@ public class UsuariosEmMemoria implements UsuarioService {
         Usuario usuario = new Usuario(matricula, nome);
         usuarios.put(matricula, usuario);
     }
+
+    public void cadastrarUsuarioComNascimento(
+            String matricula, String nome, LocalDate dataNascimento)
+            throws RecursoDuplicadoException {
+
+        exigirTextoPreenchido(matricula, "matrícula");
+        exigirTextoPreenchido(nome, "nome");
+
+        if (usuarios.containsKey(matricula)) {
+            throw new RecursoDuplicadoException(
+                    "Já existe usuário com a matrícula " + matricula);
+        }
+
+        Usuario usuario = new Usuario(matricula, nome, dataNascimento);
+        usuarios.put(matricula, usuario);
+    }
+
+
 
     @Override
     public UsuarioView buscarUsuario(String matricula) throws RecursoNaoEncontradoException {
