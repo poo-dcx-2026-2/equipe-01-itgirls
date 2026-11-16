@@ -20,21 +20,42 @@ Equipe 01 - itgirls
 ```
 equipe-01-itgirls/
 ├── docs/
-│   ├── modelo.puml                      # Diagrama de classes no formato PlantUML
-│   └── modelo.png                       # Imagem exportada do modelo UML
+│   ├── modelo.puml
+│   └── modelo.png
+│
 ├── src/
-│   ├── main/java/br/ufpb/dcx/poo/biblioteca/
-│   │   ├── Fabrica.java                 # Ponto de inicializacao do sistema
-│   │   ├── contrato/                    # CONGELADO: Interfaces, excecoes e Views
-│   │   └── inicial/                     # Implementacao das regras de negocio
-│   │       ├── AcervoEmMemoria.java
-│   │       ├── Item.java
-│   │       ├── Exemplar.java
-│   │       └── Usuario.java
-│   └── test/java/br/ufpb/dcx/poo/biblioteca/
-│       ├── BuscarPorCodigoTeste.java     # Teste de regressao para o defeito do == / equals
-│       └── NovosTestesAcervoTest.java    # Suite cobrindo entradas invalidas, duplicidades, ordenacao e bordas
-└── pom.xml                              # Dependencias do projeto (Maven)
+│   ├── main/
+│   │   └── java/
+│   │       └── br/ufpb/dcx/poo/biblioteca/
+│   │           ├── Fabrica.java
+│   │           │
+│   │           ├── contrato/
+│   │           │   └── Interfaces, exceções e Views
+│   │           │
+│   │           └── inicial/
+│   │               ├── AcervoEmMemoria.java
+│   │               ├── Item.java
+│   │               ├── Exemplar.java
+│   │               ├── Usuario.java
+│   │               ├── UsuariosEmMemoria.java
+│   │               ├── EmprestimosEmMemoria.java
+│   │               ├── ClassificacaoEtaria.java
+│   │               └── EmprestimoPorIdadeService.java
+│   │
+│   └── test/
+│       └── java/
+│           └── br/ufpb/dcx/poo/biblioteca/
+│               ├── AcervoTest.java
+│               ├── ArquivoDeItensTest.java
+│               ├── EmprestimosEmMemoriaTest.java
+│               ├── FabricaTest.java
+│               ├── NovosTestesAcervoTest.java
+│               ├── UsuarioTest.java
+│               │
+│               └── inicial/
+│                   └── EmprestimoPorIdadeServiceTest.java
+│
+└── pom.xml
 ```
 
 ---
@@ -81,12 +102,57 @@ A escolha das colecoes na classe AcervoEmMemoria considerou a eficiencia das ope
 
 ---
 
-## Extensao Autoral
 
-* **Acervo Escolhido**: Livros
-* **Regra de Negocio**: Restricao por classificacao indicativa - A biblioteca precisa validar a idade do usuario antes de realizar o emprestimo de livros por meio da classificacao etaria associada ao exemplar.
+## Nossa extensão — Restrição por classificação etária
 
----
+A extensão implementa uma regra de restrição de empréstimos baseada na classificação etária dos exemplares do acervo.
+
+O objetivo é impedir que usuários realizem empréstimos de livros cuja idade mínima recomendada seja superior à idade que possuem. Para isso, o sistema utiliza a data de nascimento cadastrada para calcular a idade do usuário na data do empréstimo e compará-la com a idade mínima exigida pelo exemplar.
+
+### Como utilizar
+
+
+
+Para utilizar a extensão, é necessário:
+
+1. Cadastrar o usuário informando sua data de nascimento.
+2. Definir a classificação etária do exemplar que será emprestado.
+3. Criar e utilizar o serviço `EmprestimoPorIdadeService`, responsável por aplicar a regra de restrição etária.
+4. Solicitar o empréstimo informando o tombo do exemplar, a matrícula do usuário e a data do empréstimo.
+
+Antes de realizar o empréstimo, o serviço calcula a idade do usuário na data informada e compara esse valor com a idade mínima exigida pela classificação do exemplar.
+
+Caso o usuário não tenha idade suficiente, o empréstimo é impedido. Caso atenda ao requisito, a solicitação é encaminhada ao serviço original de empréstimos, preservando as regras definidas pelo contrato.
+
+
+### Classificações disponíveis
+
+- LIVRE — sem idade mínima.
+- IDADE_10 — a partir de 10 anos.
+- IDADE_12 — a partir de 12 anos.
+- IDADE_14 — a partir de 14 anos.
+- IDADE_16 — a partir de 16 anos.
+- IDADE_18 — a partir de 18 anos.
+
+### Localização da implementação
+
+A extensão foi implementada fora do pacote `contrato`, sem modificar o funcionamento dos métodos definidos pelas interfaces originais.
+
+Principais classes envolvidas:
+
+- `ClassificacaoEtaria.java`: define as classificações e respectivas idades mínimas.
+- `EmprestimoPorIdadeService.java`: realiza a validação da idade antes de encaminhar o empréstimo ao serviço original.
+- `Usuario.java`: armazena a data de nascimento e calcula a idade.
+- `Exemplar.java`: armazena a classificação etária do exemplar.
+
+### Testes
+
+Foram implementados testes automatizados com JUnit 5 para verificar duas situações:
+
+- Bloqueio do empréstimo quando o usuário possui idade inferior à idade mínima exigida.
+- Permissão do empréstimo quando o usuário possui idade igual ou superior à idade mínima exigida.
+
+Os testes foram executados com sucesso.
 
 ## Regras do Projeto
 

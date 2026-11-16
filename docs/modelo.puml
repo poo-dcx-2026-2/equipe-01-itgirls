@@ -1,3 +1,4 @@
+
 @startuml
 
 skinparam classAttributeIconSize 0
@@ -21,7 +22,6 @@ class AcervoEmMemoria {
 
 AcervoEmMemoria ..|> AcervoService
 
-
 interface UsuarioService {
     +cadastrarUsuario(matricula: String, nome: String): void
     +buscarUsuario(matricula: String): UsuarioView
@@ -36,6 +36,14 @@ class UsuariosEmMemoria {
 
 UsuariosEmMemoria ..|> UsuarioService
 
+interface EmprestimoService
+
+class EmprestimosEmMemoria {
+    -acervo: AcervoEmMemoria
+    -usuarios: UsuariosEmMemoria
+    -emprestimos: List<Emprestimo>
+    -filasPorItem: Map<String, FilaDeReservas>
+}
 
 class Item {
     -codigo: String
@@ -43,7 +51,6 @@ class Item {
     -autoria: String
     -categoria: String
     -ano: int
-
     +adicionarExemplar(exemplar: Exemplar): void
     +totalDeExemplares(): int
     +exemplaresDisponiveis(): int
@@ -60,12 +67,36 @@ class Usuario {
     -matricula: String
     -nome: String
     -ativo: boolean
-    -emprestimosAtivos: int
-
+    -emprestimos: List<Emprestimo>
     +isAtivo(): boolean
     +getEmprestimosAtivos(): int
-    +incrementEmprestimosAtivos(): void
-    +decrementEmprestimosAtivos(): void
+}
+
+class Emprestimo {
+    -id: String
+    -exemplar: Exemplar
+    -usuario: Usuario
+    -dataDoEmprestimo: LocalDate
+    -dataPrevistaDeDevolucao: LocalDate
+    -dataDaDevolucao: LocalDate
+    +registrarDevolucao(data: LocalDate): void
+    +estaAtrasado(dataAtual: LocalDate): boolean
+}
+
+class Reserva {
+    -id: String
+    -codigoDoItem: String
+    -usuario: Usuario
+    -dataDaReserva: LocalDate
+    -exemplarSeparado: Exemplar
+    +atribuirExemplar(exemplar: Exemplar): void
+}
+
+class FilaDeReservas {
+    -reservas: List<Reserva>
+    +entrar(reserva: Reserva): void
+    +proxima(): Reserva
+    +remover(reserva: Reserva): void
 }
 
 enum StatusExemplar {
@@ -75,14 +106,21 @@ enum StatusExemplar {
     INDISPONIVEL
 }
 
-
 AcervoEmMemoria "1" -- "0..*" Item : gerencia
-
 Item "1" *-- "0..*" Exemplar : possui
-
 AcervoEmMemoria "1" -- "0..*" Exemplar : controla tombos
-
 UsuariosEmMemoria "1" -- "0..*" Usuario : gerencia
+
+EmprestimosEmMemoria ..|> EmprestimoService
+EmprestimosEmMemoria "1" -- "0..*" Emprestimo : mantém
+EmprestimosEmMemoria "1" *-- "0..*" FilaDeReservas : mantém filas
+FilaDeReservas "1" *-- "0..*" Reserva : organiza
+
+Usuario "1" -- "0..*" Emprestimo : realiza
+Exemplar "1" -- "0..*" Emprestimo : participa
+Usuario "1" -- "0..*" Reserva : solicita
+Item "1" -- "0..*" Reserva : recebe
+Reserva "0..*" --> "0..1" Exemplar : exemplar separado
 
 Exemplar --> StatusExemplar : possui
 

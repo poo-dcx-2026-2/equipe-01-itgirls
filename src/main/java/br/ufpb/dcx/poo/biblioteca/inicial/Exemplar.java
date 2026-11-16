@@ -8,6 +8,7 @@ public class Exemplar {
     private final String tombo;
     private final String codigoDoItem;
     private StatusExemplar status;
+    private ClassificacaoEtaria classificacaoEtaria;
 
     public Exemplar(String tombo, String codigoDoItem) {
         if (tombo == null || tombo.isBlank()) {
@@ -20,7 +21,10 @@ public class Exemplar {
         this.tombo = tombo;
         this.codigoDoItem = codigoDoItem;
         this.status = StatusExemplar.DISPONIVEL;
+        this.classificacaoEtaria = ClassificacaoEtaria.LIVRE;
     }
+
+
 
     public String getTombo() { return tombo; }
 
@@ -36,4 +40,15 @@ public class Exemplar {
         this.status = status;
     }
 
+    public ClassificacaoEtaria getClassificacaoEtaria() {
+        return classificacaoEtaria;
+    }
+
+    public void setClassificacaoEtaria(ClassificacaoEtaria classificacaoEtaria) {
+        if (classificacaoEtaria == null) {
+            throw new DadosInvalidosException("A classificação etária é obrigatória.");
+        }
+
+        this.classificacaoEtaria = classificacaoEtaria;
+    }
 }
