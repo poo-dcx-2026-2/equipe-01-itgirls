@@ -1,8 +1,12 @@
-
 @startuml
 
 skinparam classAttributeIconSize 0
+skinparam linetype ortho
 hide empty members
+
+' =========================
+' INTERFACES DO CONTRATO
+' =========================
 
 interface AcervoService {
     +cadastrarItem(codigo: String, titulo: String, autoria: String, categoria: String, ano: int): void
@@ -15,13 +19,6 @@ interface AcervoService {
     +baixarExemplar(tombo: String): void
 }
 
-class AcervoEmMemoria {
-    -itens: Map<String, Item>
-    -tombosGlobais: Map<String, Exemplar>
-}
-
-AcervoEmMemoria ..|> AcervoService
-
 interface UsuarioService {
     +cadastrarUsuario(matricula: String, nome: String): void
     +buscarUsuario(matricula: String): UsuarioView
@@ -30,20 +27,115 @@ interface UsuarioService {
     +reativarUsuario(matricula: String): void
 }
 
-class UsuariosEmMemoria {
-    -usuarios: Map<String, Usuario>
+interface EmprestimoService {
+    +{static} LIMITE_DE_EMPRESTIMOS: int = 3
+    +{static} PRAZO_EM_DIAS: int = 14
+    +emprestar(tombo: String, matricula: String, data: LocalDate): String
+    +devolver(tombo: String, data: LocalDate): void
+    +listarEmprestimosDoUsuario(matricula: String): List<EmprestimoView>
+    +listarAtrasados(data: LocalDate): List<EmprestimoView>
+    +reservar(codigoDoItem: String, matricula: String, data: LocalDate): String
+    +listarReservas(codigoDoItem: String): List<ReservaView>
+    +cancelarReserva(idDaReserva: String): void
 }
 
-UsuariosEmMemoria ..|> UsuarioService
+interface RelatorioService {
+    +itensMaisEmprestados(n: int): List<ItemView>
+    +emprestimosPorCategoria(): Map<String, Long>
+    +usuariosComAtraso(data: LocalDate): List<UsuarioView>
+    +taxaDeOcupacaoDoAcervo(): double
+    +importarItensEmLote(arquivo: Path): int
+}
 
-interface EmprestimoService
+interface Biblioteca {
+    +acervo(): AcervoService
+    +usuarios(): UsuarioService
+    +emprestimos(): EmprestimoService
+    +relatorios(): RelatorioService
+    +salvar(): void
+    +carregar(): void
+}
+
+' =========================
+' IMPLEMENTACOES DOS SERVICOS
+' =========================
+
+class AcervoEmMemoria {
+    -itens: Map<String, Item>
+    -tombosGlobais: Map<String, Exemplar>
+    +cadastrarItem(codigo: String, titulo: String, autoria: String, categoria: String, ano: int): void
+    +buscarItem(codigo: String): ItemView
+    +listarItens(): List<ItemView>
+    +buscarPorTitulo(trecho: String): List<ItemView>
+    +buscarPorCategoria(categoria: String): List<ItemView>
+    +adicionarExemplar(codigoDoItem: String, tombo: String): void
+    +listarExemplares(codigoDoItem: String): List<ExemplarView>
+    +baixarExemplar(tombo: String): void
+    ~buscarItemInterno(codigo: String): Item
+    ~buscarExemplarPorTombo(tombo: String): Exemplar
+    ~itens(): List<Item>
+    ~exemplares(): List<Exemplar>
+}
+
+class UsuariosEmMemoria {
+    -usuarios: Map<String, Usuario>
+    +cadastrarUsuario(matricula: String, nome: String): void
+    +cadastrarUsuarioComNascimento(matricula: String, nome: String, dataNascimento: LocalDate): void
+    +buscarUsuario(matricula: String): UsuarioView
+    +listarUsuarios(): List<UsuarioView>
+    +desativarUsuario(matricula: String): void
+    +reativarUsuario(matricula: String): void
+    ~buscarUsuarioPorMatricula(matricula: String): Usuario
+    ~todosUsuarios(): List<Usuario>
+}
 
 class EmprestimosEmMemoria {
     -acervo: AcervoEmMemoria
     -usuarios: UsuariosEmMemoria
     -emprestimos: List<Emprestimo>
     -filasPorItem: Map<String, FilaDeReservas>
+    -proximoId: int
+    +EmprestimosEmMemoria(acervo: AcervoEmMemoria, usuarios: UsuariosEmMemoria)
+    +emprestar(tombo: String, matricula: String, data: LocalDate): String
+    +devolver(tombo: String, data: LocalDate): void
+    +listarEmprestimosDoUsuario(matricula: String): List<EmprestimoView>
+    +listarAtrasados(data: LocalDate): List<EmprestimoView>
+    +reservar(codigoDoItem: String, matricula: String, data: LocalDate): String
+    +listarReservas(codigoDoItem: String): List<ReservaView>
+    +cancelarReserva(idDaReserva: String): void
+    ~todosEmprestimos(): List<Emprestimo>
+    ~todasReservas(): List<Reserva>
 }
+
+class RelatoriosNaoImplementados {
+    +itensMaisEmprestados(n: int): List<ItemView>
+    +emprestimosPorCategoria(): Map<String, Long>
+    +usuariosComAtraso(data: LocalDate): List<UsuarioView>
+    +taxaDeOcupacaoDoAcervo(): double
+    +importarItensEmLote(arquivo: Path): int
+}
+
+' =========================
+' FACADE
+' =========================
+
+class BibliotecaInicial {
+    -usuarios: UsuariosEmMemoria
+    -acervo: AcervoEmMemoria
+    -emprestimos: EmprestimosEmMemoria
+    -relatorios: RelatoriosNaoImplementados
+    +acervo(): AcervoService
+    +usuarios(): UsuarioService
+    +emprestimos(): EmprestimoService
+    +relatorios(): RelatorioService
+    +salvar(): void
+    +carregar(): void
+    -extrairNumeroId(id: String): int
+}
+
+' =========================
+' CLASSES DO DOMINIO
+' =========================
 
 class Item {
     -codigo: String
@@ -51,16 +143,33 @@ class Item {
     -autoria: String
     -categoria: String
     -ano: int
+    -exemplares: List<Exemplar>
+    +Item(codigo: String, titulo: String, autoria: String, categoria: String, ano: int)
+    +getCodigo(): String
+    +getTitulo(): String
+    +getAutoria(): String
+    +getCategoria(): String
+    +getAno(): int
     +adicionarExemplar(exemplar: Exemplar): void
+    +removerExemplar(exemplar: Exemplar): void
     +totalDeExemplares(): int
     +exemplaresDisponiveis(): int
-    +removerExemplar(exemplar: Exemplar): void
+    +getExemplares(): List<Exemplar>
 }
 
 class Exemplar {
     -tombo: String
     -codigoDoItem: String
     -status: StatusExemplar
+    -classificacaoEtaria: ClassificacaoEtaria
+    +Exemplar(tombo: String, codigoDoItem: String)
+    +getTombo(): String
+    +getCodigoDoItem(): String
+    +getStatus(): StatusExemplar
+    +podeSerEmprestadoPara(usuario: Usuario): boolean
+    +setStatus(status: StatusExemplar): void
+    +getClassificacaoEtaria(): ClassificacaoEtaria
+    +setClassificacaoEtaria(classificacaoEtaria: ClassificacaoEtaria): void
 }
 
 class Usuario {
@@ -68,8 +177,17 @@ class Usuario {
     -nome: String
     -ativo: boolean
     -emprestimos: List<Emprestimo>
+    -dataNascimento: LocalDate
+    +Usuario(matricula: String, nome: String)
+    +Usuario(matricula: String, nome: String, dataNascimento: LocalDate)
+    +getMatricula(): String
+    +getNome(): String
     +isAtivo(): boolean
+    +setAtivo(ativo: boolean): void
     +getEmprestimosAtivos(): int
+    +adicionarEmprestimo(emprestimo: Emprestimo): void
+    +getDataNascimento(): LocalDate
+    +calcularIdade(dataReferencia: LocalDate): int
 }
 
 class Emprestimo {
@@ -79,8 +197,16 @@ class Emprestimo {
     -dataDoEmprestimo: LocalDate
     -dataPrevistaDeDevolucao: LocalDate
     -dataDaDevolucao: LocalDate
+    +Emprestimo(id: String, exemplar: Exemplar, usuario: Usuario, data: LocalDate)
+    +estaAtivo(): boolean
+    +estaAtrasadoEm(data: LocalDate): boolean
     +registrarDevolucao(data: LocalDate): void
-    +estaAtrasado(dataAtual: LocalDate): boolean
+    +getId(): String
+    +getExemplar(): Exemplar
+    +getUsuario(): Usuario
+    +getDataDoEmprestimo(): LocalDate
+    +getDataPrevistaDeDevolucao(): LocalDate
+    +getDataDaDevolucao(): LocalDate
 }
 
 class Reserva {
@@ -89,14 +215,50 @@ class Reserva {
     -usuario: Usuario
     -dataDaReserva: LocalDate
     -exemplarSeparado: Exemplar
+    +Reserva(id: String, codigoDoItem: String, usuario: Usuario, dataDaReserva: LocalDate)
     +atribuirExemplar(exemplar: Exemplar): void
+    +liberarExemplar(): void
+    +getId(): String
+    +getCodigoDoItem(): String
+    +getUsuario(): Usuario
+    +getDataDaReserva(): LocalDate
+    +getExemplarSeparado(): Exemplar
 }
 
 class FilaDeReservas {
     -reservas: List<Reserva>
     +entrar(reserva: Reserva): void
     +proxima(): Reserva
-    +remover(reserva: Reserva): void
+    +remover(): Reserva
+    +remover(idDaReserva: String): Reserva
+    +possuiReservaDoUsuario(matricula: String): boolean
+    +buscarReservaDoUsuarioComExemplar(matricula: String, exemplar: Exemplar): Reserva
+    +getReservas(): List<Reserva>
+}
+
+' =========================
+' EXTENSAO AUTORAL
+' =========================
+
+class EmprestimoPorIdadeService {
+    -acervo: AcervoEmMemoria
+    -usuarios: UsuariosEmMemoria
+    -emprestimos: EmprestimoService
+    +EmprestimoPorIdadeService(acervo: AcervoEmMemoria, usuarios: UsuariosEmMemoria, emprestimos: EmprestimoService)
+    +emprestar(tombo: String, matricula: String, data: LocalDate): String
+}
+
+enum ClassificacaoEtaria {
+    LIVRE
+    IDADE_10
+    IDADE_12
+    IDADE_14
+    IDADE_16
+    IDADE_18
+    --
+    -idadeMinima: int
+    -ClassificacaoEtaria(idadeMinima: int)
+    +getIdadeMinima(): int
 }
 
 enum StatusExemplar {
@@ -106,22 +268,63 @@ enum StatusExemplar {
     INDISPONIVEL
 }
 
+' =========================
+' IMPLEMENTACAO DAS INTERFACES
+' =========================
+
+AcervoEmMemoria ..|> AcervoService
+UsuariosEmMemoria ..|> UsuarioService
+EmprestimosEmMemoria ..|> EmprestimoService
+RelatoriosNaoImplementados ..|> RelatorioService
+BibliotecaInicial ..|> Biblioteca
+
+' =========================
+' FACADE E SERVICOS
+' =========================
+
+BibliotecaInicial "1" *-- "1" AcervoEmMemoria : possui
+BibliotecaInicial "1" *-- "1" UsuariosEmMemoria : possui
+BibliotecaInicial "1" *-- "1" EmprestimosEmMemoria : possui
+BibliotecaInicial "1" *-- "1" RelatoriosNaoImplementados : possui
+
+EmprestimosEmMemoria --> AcervoEmMemoria : consulta
+EmprestimosEmMemoria --> UsuariosEmMemoria : consulta
+
+' =========================
+' ACERVO E EXEMPLARES
+' =========================
+
 AcervoEmMemoria "1" -- "0..*" Item : gerencia
 Item "1" *-- "0..*" Exemplar : possui
-AcervoEmMemoria "1" -- "0..*" Exemplar : controla tombos
-UsuariosEmMemoria "1" -- "0..*" Usuario : gerencia
-
-EmprestimosEmMemoria ..|> EmprestimoService
-EmprestimosEmMemoria "1" -- "0..*" Emprestimo : mantém
-EmprestimosEmMemoria "1" *-- "0..*" FilaDeReservas : mantém filas
-FilaDeReservas "1" *-- "0..*" Reserva : organiza
-
-Usuario "1" -- "0..*" Emprestimo : realiza
-Exemplar "1" -- "0..*" Emprestimo : participa
-Usuario "1" -- "0..*" Reserva : solicita
-Item "1" -- "0..*" Reserva : recebe
-Reserva "0..*" --> "0..1" Exemplar : exemplar separado
+AcervoEmMemoria "1" -- "0..*" Exemplar : indice global de tombos
 
 Exemplar --> StatusExemplar : possui
+Exemplar --> ClassificacaoEtaria : possui
+
+' =========================
+' EMPRESTIMOS
+' =========================
+
+EmprestimosEmMemoria "1" -- "0..*" Emprestimo : mantem
+Usuario "1" -- "0..*" Emprestimo : possui
+Exemplar "1" -- "0..*" Emprestimo : participa
+
+' =========================
+' RESERVAS
+' =========================
+
+EmprestimosEmMemoria "1" *-- "0..*" FilaDeReservas : filasPorItem
+FilaDeReservas "1" *-- "0..*" Reserva : organiza
+
+Usuario "1" -- "0..*" Reserva : solicita
+Reserva "0..1" --> "0..1" Exemplar : exemplar separado
+
+' =========================
+' EXTENSAO AUTORAL
+' =========================
+
+EmprestimoPorIdadeService --> AcervoEmMemoria : consulta
+EmprestimoPorIdadeService --> UsuariosEmMemoria : consulta
+EmprestimoPorIdadeService --> EmprestimoService : delega
 
 @enduml
